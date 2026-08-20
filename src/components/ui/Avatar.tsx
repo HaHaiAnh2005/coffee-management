@@ -1,0 +1,27 @@
+import React from 'react';
+
+interface AvatarProps {
+  src?: string;
+  name: string;
+  size?: 'sm' | 'md' | 'lg';
+}
+
+export const Avatar: React.FC<AvatarProps> = ({ src, name, size = 'md' }) => {
+  const sizeMap = {
+    sm: 'w-7 h-7 text-xs',
+    md: 'w-9 h-9 text-sm',
+    lg: 'w-12 h-12 text-base',
+  };
+
+  if (src) {
+    return <img src={src} alt={name} className={`${sizeMap[size]} rounded-full object-cover border border-stone-700`} />;
+  }
+
+  const initial = name ? name.charAt(0).toUpperCase() : 'U';
+
+  return (
+    <div className={`${sizeMap[size]} rounded-full bg-amber-500/20 text-amber-400 font-bold border border-amber-500/40 flex items-center justify-center`}>
+      {initial}
+    </div>
+  );
+};
