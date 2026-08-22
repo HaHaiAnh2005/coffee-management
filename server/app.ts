@@ -15,8 +15,9 @@ export const createApp = async (): Promise<Express> => {
   app.use(express.json({ limit: '10mb' }));
   app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-  // Express API Routes
+  // Express API Routes (Supports both /api and /api/v1)
   app.use('/api', apiRoutes);
+  app.use('/api/v1', apiRoutes);
 
   // Health check endpoint
   app.get('/api/health', (req, res) => {

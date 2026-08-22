@@ -21,7 +21,10 @@ export const authApi = {
         };
       }
     } catch (error: any) {
-      const msg = error?.response?.data?.message || error?.message || 'Đăng nhập thất bại';
+      const msg =
+        typeof error === 'string'
+          ? error
+          : error?.message || error?.response?.data?.message || 'Đăng nhập thất bại';
       return { success: false, message: msg, data: undefined as any };
     }
 
@@ -54,7 +57,10 @@ export const authApi = {
         };
       }
     } catch (error: any) {
-      const msg = error?.response?.data?.message || error?.message || 'Đăng ký thất bại';
+      const msg =
+        typeof error === 'string'
+          ? error
+          : error?.message || error?.response?.data?.message || 'Đăng ký thất bại';
       return {
         success: false,
         message: msg,
