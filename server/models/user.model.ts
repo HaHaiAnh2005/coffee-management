@@ -18,7 +18,7 @@ const UserSchema: Schema = new Schema(
     email: { type: String, required: true, unique: true },
     role: {
       type: String,
-      enum: ['ADMIN', 'MANAGER', 'CASHIER', 'WAITER', 'BARISTA', 'CUSTOMER', 'admin', 'manager', 'cashier', 'staff'],
+      enum: ['ADMIN', 'MANAGER', 'CASHIER', 'WAITER', 'BARISTA', 'CUSTOMER', 'admin', 'manager', 'cashier', 'staff', 'customer'],
       default: 'CUSTOMER',
     },
     pin: { type: String },

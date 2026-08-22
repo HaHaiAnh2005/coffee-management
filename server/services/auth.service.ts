@@ -45,7 +45,7 @@ export class AuthService {
       name,
       email,
       password: hashedPassword,
-      role: userRole === 'ADMIN' ? 'admin' : 'customer',
+      role: userRole === 'ADMIN' ? 'ADMIN' : 'CUSTOMER',
       avatar,
       phone,
     });
