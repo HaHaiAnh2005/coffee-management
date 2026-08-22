@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { INITIAL_CUSTOMERS, calculateCustomerTier } from '../../api/customer.api';
+import { INITIAL_CUSTOMERS, calculateCustomerTier, customerApi } from '../../api/customer.api';
 import type { Customer, CustomerTier } from '../../types/customer';
 import { formatCurrency } from '../../utils/formatCurrency';
 import {
@@ -37,6 +37,17 @@ export const Customers: React.FC = () => {
     }
     return INITIAL_CUSTOMERS;
   });
+
+  // Fetch live customers from MongoDB API on load
+  useEffect(() => {
+    const fetchLiveCustomers = async () => {
+      const liveData = await customerApi.getAll();
+      if (Array.isArray(liveData) && liveData.length > 0) {
+        setCustomers(liveData);
+      }
+    };
+    fetchLiveCustomers();
+  }, []);
 
   // Filter & Search & Sort states
   const [searchQuery, setSearchQuery] = useState('');
@@ -83,10 +94,8 @@ export const Customers: React.FC = () => {
   // Handle Open Add Customer Modal
   const handleOpenAddModal = () => {
     setEditingCustomer(null);
-    const nextIdNumber = customers.length + 1;
-    const autoCode = `CUS-${nextIdNumber < 10 ? '00' : nextIdNumber < 100 ? '0' : ''}${nextIdNumber}`;
     setFormData({
-      code: autoCode,
+      code: `CUS-${Date.now().toString().slice(-4)}`,
       name: '',
       phone: '',
       email: '',
@@ -115,15 +124,16 @@ export const Customers: React.FC = () => {
   };
 
   // Delete Customer
-  const handleDeleteCustomer = (cus: Customer) => {
+  const handleDeleteCustomer = async (cus: Customer) => {
     if (window.confirm(`Bạn có chắc chắn muốn xóa khách hàng "${cus.name}" (${cus.phone}) không?`)) {
       setCustomers((prev) => prev.filter((c) => c.id !== cus.id));
+      await customerApi.delete(cus.id);
       showToast(`Đã xóa khách hàng ${cus.name}`);
     }
   };
 
   // Save Customer (Create or Update)
-  const handleSaveCustomer = (e: React.FormEvent) => {
+  const handleSaveCustomer = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name.trim() || !formData.phone.trim()) {
       alert('Vui lòng nhập đầy đủ Họ tên và Số điện thoại!');
@@ -133,21 +143,25 @@ export const Customers: React.FC = () => {
     if (editingCustomer) {
       // Update
       const autoTier = calculateCustomerTier(formData.totalSpent);
+      const updatedData: Partial<Customer> = {
+        name: formData.name.trim(),
+        phone: formData.phone.trim(),
+        email: formData.email.trim(),
+        tier: formData.tier || autoTier,
+        rewardPoints: Number(formData.rewardPoints) || 0,
+        totalSpent: Number(formData.totalSpent) || 0,
+        notes: formData.notes.trim(),
+      };
       const updatedList = customers.map((c) =>
         c.id === editingCustomer.id
           ? {
               ...c,
-              name: formData.name.trim(),
-              phone: formData.phone.trim(),
-              email: formData.email.trim(),
-              tier: formData.tier || autoTier,
-              rewardPoints: Number(formData.rewardPoints) || 0,
-              totalSpent: Number(formData.totalSpent) || 0,
-              notes: formData.notes.trim(),
+              ...updatedData,
             }
           : c
       );
       setCustomers(updatedList);
+      await customerApi.update(editingCustomer.id, updatedData);
       showToast(`Đã cập nhật thông tin khách hàng ${formData.name}`);
     } else {
       // Create new
@@ -164,6 +178,7 @@ export const Customers: React.FC = () => {
         notes: formData.notes.trim(),
       };
       setCustomers([...customers, newCustomer]);
+      await customerApi.create(newCustomer);
       showToast(`Đã thêm mới khách hàng ${formData.name}`);
     }
 
@@ -180,16 +195,17 @@ export const Customers: React.FC = () => {
   };
 
   // Save Points Change
-  const handleSavePoints = (e: React.FormEvent) => {
+  const handleSavePoints = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedCustomerForPoints || pointsAmount <= 0) return;
 
     const changeVal = pointsChangeType === 'add' ? pointsAmount : -pointsAmount;
+    let newPoints = 0;
 
     setCustomers((prev) =>
       prev.map((c) => {
         if (c.id === selectedCustomerForPoints.id) {
-          const newPoints = Math.max(0, c.rewardPoints + changeVal);
+          newPoints = Math.max(0, c.rewardPoints + changeVal);
           return {
             ...c,
             rewardPoints: newPoints,
@@ -198,6 +214,8 @@ export const Customers: React.FC = () => {
         return c;
       })
     );
+
+    await customerApi.update(selectedCustomerForPoints.id, { rewardPoints: newPoints });
 
     showToast(
       pointsChangeType === 'add'
@@ -209,16 +227,18 @@ export const Customers: React.FC = () => {
   };
 
   // Quick Inline Adjust Points (+/- 10 points shortcut)
-  const handleQuickAdjustPoints = (cusId: string, amount: number) => {
+  const handleQuickAdjustPoints = async (cusId: string, amount: number) => {
+    let updatedPoints = 0;
     setCustomers((prev) =>
       prev.map((c) => {
         if (c.id === cusId) {
-          const newPoints = Math.max(0, c.rewardPoints + amount);
-          return { ...c, rewardPoints: newPoints };
+          updatedPoints = Math.max(0, c.rewardPoints + amount);
+          return { ...c, rewardPoints: updatedPoints };
         }
         return c;
       })
     );
+    await customerApi.update(cusId, { rewardPoints: updatedPoints });
     const cus = customers.find((c) => c.id === cusId);
     if (cus) {
       showToast(`${amount > 0 ? `+${amount}` : amount} điểm cho ${cus.name}`);

@@ -1,6 +1,7 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import User, { IUser } from '../models/user.model';
+import Customer from '../models/customer.model';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'coffee_management_super_secret_jwt_key_2026';
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '1d';
@@ -13,6 +14,16 @@ export class AuthService {
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       throw new Error('Email đã được đăng ký tài khoản khác.');
+    }
+
+    const userRole = (role || 'CUSTOMER').toUpperCase();
+
+    // Check if phone already registered as customer
+    if (userRole === 'CUSTOMER' && phone) {
+      const existingCustomer = await Customer.findOne({ phone });
+      if (existingCustomer) {
+        throw new Error('Số điện thoại này đã được đăng ký tài khoản khách hàng.');
+      }
     }
 
     // Generate custom string id if not provided
@@ -34,12 +45,36 @@ export class AuthService {
       name,
       email,
       password: hashedPassword,
-      role: role || 'staff',
+      role: userRole === 'ADMIN' ? 'admin' : 'customer',
       avatar,
-      phone
+      phone,
     });
 
     const savedUser = await newUser.save();
+
+    // Auto-create Customer profile if user is a customer
+    if (userRole === 'CUSTOMER') {
+      try {
+        const cusId = `CUS-${Date.now().toString().slice(-6)}`;
+        const todayStr = new Date().toISOString().split('T')[0];
+        const newCustomer = new Customer({
+          id: cusId,
+          name: name || 'Khách hàng mới',
+          phone: phone || '0900000000',
+          email: email || '',
+          points: 50, // Welcome points
+          tier: 'Bạc',
+          totalSpent: 0,
+          totalOrders: 0,
+          joinedDate: todayStr,
+          notes: 'Đăng ký tài khoản từ Website Bồng Biêng',
+        });
+        await newCustomer.save();
+      } catch (err: any) {
+        console.error('Error creating customer record during auth register:', err);
+      }
+    }
+
     const userObj = savedUser.toObject();
     delete userObj.password;
     return userObj;

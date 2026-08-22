@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/auth.store';
-import { FiUserCheck, FiShield, FiMail, FiPhone, FiLock, FiUser, FiArrowRight } from 'react-icons/fi';
+import { authApi } from '../../api/auth.api';
+import { FiUserCheck, FiShield, FiMail, FiPhone, FiLock, FiUser, FiArrowRight, FiAlertCircle } from 'react-icons/fi';
 
 export const Register: React.FC = () => {
   const navigate = useNavigate();
@@ -13,27 +14,55 @@ export const Register: React.FC = () => {
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    loginSuccess(
-      {
-        id: `U-${Date.now()}`,
+    setErrorMessage(null);
+    setIsLoading(true);
+
+    try {
+      const response = await authApi.register({
         name,
         email,
         phone,
+        password,
         role,
-        avatar:
-          role === 'ADMIN'
-            ? 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80'
-            : 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80',
-      },
-      'mock_token'
-    );
+      });
 
-    if (role === 'ADMIN') {
-      navigate('/admin/dashboard');
-    } else {
-      navigate('/');
+      if (!response.success) {
+        setErrorMessage(response.message || 'Đăng ký không thành công. Vui lòng kiểm tra thông tin.');
+        setIsLoading(false);
+        return;
+      }
+
+      const registeredUser = response.data.user;
+
+      loginSuccess(
+        {
+          id: registeredUser.id || `U-${Date.now()}`,
+          name: registeredUser.name || name,
+          email: registeredUser.email || email,
+          phone: registeredUser.phone || phone,
+          role: role,
+          avatar:
+            role === 'ADMIN'
+              ? 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80'
+              : 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80',
+        },
+        'mock_jwt_token_laura_coffee_2026'
+      );
+
+      if (role === 'ADMIN') {
+        navigate('/admin/dashboard');
+      } else {
+        navigate('/');
+      }
+    } catch (err: any) {
+      setErrorMessage(err.message || 'Đã xảy ra lỗi khi kết nối server.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -129,12 +158,26 @@ export const Register: React.FC = () => {
           </div>
         </div>
 
+        {errorMessage && (
+          <div className="p-3 bg-rose-50 border border-rose-200 text-rose-800 rounded-xl text-xs font-bold flex items-center gap-2">
+            <FiAlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
+            <span>{errorMessage}</span>
+          </div>
+        )}
+
         <button
           type="submit"
-          className="w-full py-3 rounded-xl bg-amber-800 hover:bg-amber-900 text-white font-extrabold text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer hover:scale-[1.01] active:scale-[0.99]"
+          disabled={isLoading}
+          className="w-full py-3 rounded-xl bg-amber-800 hover:bg-amber-900 text-white font-extrabold text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed"
         >
-          <span>{role === 'ADMIN' ? 'Đăng Ký Tài Khoản Quản Lý' : 'Đăng Ký Tài Khoản Khách Hàng'}</span>
-          <FiArrowRight />
+          <span>
+            {isLoading
+              ? 'Đang xử lý...'
+              : role === 'ADMIN'
+              ? 'Đăng Ký Tài Khoản Quản Lý'
+              : 'Đăng Ký Tài Khoản Khách Hàng'}
+          </span>
+          {!isLoading && <FiArrowRight />}
         </button>
 
         <div className="text-center text-xs text-stone-600 pt-3 border-t border-stone-200 font-medium">

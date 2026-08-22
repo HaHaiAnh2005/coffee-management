@@ -1,3 +1,4 @@
+import { axiosClient } from '../config/axios';
 import type { Customer, CustomerTier } from '../types/customer';
 
 export type { Customer, CustomerTier };
@@ -66,6 +67,80 @@ export const calculateCustomerTier = (totalSpent: number): CustomerTier => {
   return 'Bạc';
 };
 
-export const customerApi = {
-  getAll: async (): Promise<Customer[]> => INITIAL_CUSTOMERS,
+const mapServerCustomerToClient = (c: any): Customer => {
+  return {
+    id: c.id || c._id,
+    name: c.name || 'Khách hàng',
+    phone: c.phone || '',
+    email: c.email || '',
+    rewardPoints: c.rewardPoints ?? c.points ?? 0,
+    totalSpent: c.totalSpent ?? 0,
+    tier: c.tier || calculateCustomerTier(c.totalSpent || 0),
+    createdAt: c.createdAt || c.joinedDate || new Date().toISOString().split('T')[0],
+    notes: c.notes || '',
+  };
 };
+
+export const customerApi = {
+  getAll: async (): Promise<Customer[]> => {
+    try {
+      const res: any = await axiosClient.get('/customers');
+      let rawList: any[] = [];
+      if (Array.isArray(res)) rawList = res;
+      else if (Array.isArray(res?.data)) rawList = res.data;
+      else if (Array.isArray(res?.data?.data)) rawList = res.data.data;
+
+      if (rawList.length > 0) {
+        return rawList.map(mapServerCustomerToClient);
+      }
+      return INITIAL_CUSTOMERS;
+    } catch (error) {
+      console.error('Error fetching customers from backend:', error);
+      return INITIAL_CUSTOMERS;
+    }
+  },
+
+  create: async (customerData: Partial<Customer>): Promise<Customer | null> => {
+    try {
+      const res: any = await axiosClient.post('/customers', {
+        ...customerData,
+        points: customerData.rewardPoints ?? 0,
+        joinedDate: customerData.createdAt,
+      });
+      const data = res?.data || res;
+      if (data && (data.id || data._id)) {
+        return mapServerCustomerToClient(data);
+      }
+      return null;
+    } catch (error) {
+      console.error('Error creating customer on backend:', error);
+      return null;
+    }
+  },
+
+  update: async (id: string, customerData: Partial<Customer>): Promise<Customer | null> => {
+    try {
+      const res: any = await axiosClient.put(`/customers/${id}`, {
+        ...customerData,
+        points: customerData.rewardPoints,
+      });
+      const data = res?.data || res;
+      if (data) return mapServerCustomerToClient(data);
+      return null;
+    } catch (error) {
+      console.error('Error updating customer on backend:', error);
+      return null;
+    }
+  },
+
+  delete: async (id: string): Promise<boolean> => {
+    try {
+      await axiosClient.delete(`/customers/${id}`);
+      return true;
+    } catch (error) {
+      console.error('Error deleting customer on backend:', error);
+      return false;
+    }
+  },
+};
+

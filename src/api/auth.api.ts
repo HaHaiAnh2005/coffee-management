@@ -1,8 +1,30 @@
+import { axiosClient } from '../config/axios';
 import type { LoginCredentials, RegisterPayload, User } from '../types/auth';
 import type { ApiResponse } from '../types/common';
 
 export const authApi = {
   login: async (credentials: LoginCredentials): Promise<ApiResponse<{ token: string; user: User }>> => {
+    try {
+      const res: any = await axiosClient.post('/auth/login', credentials);
+      if (res?.data?.token && res?.data?.user) {
+        return {
+          success: true,
+          message: 'Đăng nhập thành công',
+          data: res.data,
+        };
+      }
+      if (res?.token && res?.user) {
+        return {
+          success: true,
+          message: 'Đăng nhập thành công',
+          data: res,
+        };
+      }
+    } catch (error: any) {
+      const msg = error?.response?.data?.message || error?.message || 'Đăng nhập thất bại';
+      return { success: false, message: msg, data: undefined as any };
+    }
+
     return {
       success: true,
       message: 'Đăng nhập thành công',
@@ -20,7 +42,26 @@ export const authApi = {
     };
   },
 
-  register: async (payload: RegisterPayload): Promise<ApiResponse<{ user: User }>> => {
+  register: async (payload: RegisterPayload & { role?: string }): Promise<ApiResponse<{ user: User }>> => {
+    try {
+      const res: any = await axiosClient.post('/auth/register', payload);
+      const user = res?.data || res;
+      if (user && (user.id || user._id)) {
+        return {
+          success: true,
+          message: 'Đăng ký tài khoản thành công',
+          data: { user },
+        };
+      }
+    } catch (error: any) {
+      const msg = error?.response?.data?.message || error?.message || 'Đăng ký thất bại';
+      return {
+        success: false,
+        message: msg,
+        data: undefined as any,
+      };
+    }
+
     return {
       success: true,
       message: 'Đăng ký tài khoản thành công',
@@ -30,7 +71,7 @@ export const authApi = {
           name: payload.name,
           email: payload.email,
           phone: payload.phone,
-          role: 'CUSTOMER',
+          role: (payload.role as any) || 'CUSTOMER',
         },
       },
     };
