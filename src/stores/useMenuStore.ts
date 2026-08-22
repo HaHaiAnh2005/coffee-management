@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import type { Category, CategoryId, Product } from '../types';
 import { INITIAL_CATEGORIES, INITIAL_PRODUCTS } from '../data/mockData';
 import { productApi } from '../api/product.api';
+import { categoryApi } from '../api/category.api';
 
 export interface MenuState {
   products: Product[];
@@ -12,6 +13,7 @@ export interface MenuState {
 
   // Actions
   fetchProducts: () => Promise<void>;
+  fetchCategories: () => Promise<void>;
   setSelectedCategoryId: (categoryId: CategoryId | 'all') => void;
   setSelectedCategory: (categoryId: CategoryId | 'all') => void;
   setSearchQuery: (query: string) => void;
@@ -20,6 +22,9 @@ export interface MenuState {
   addProduct: (product: Omit<Product, 'id'>) => Promise<Product | null>;
   updateProduct: (productId: string, updatedData: Partial<Product>) => Promise<void>;
   deleteProduct: (productId: string) => Promise<void>;
+  addCategory: (categoryData: Partial<Category>) => Promise<Category | null>;
+  updateCategory: (id: string, updatedData: Partial<Category>) => Promise<void>;
+  deleteCategory: (id: string) => Promise<void>;
 }
 
 export const useMenuStore = create<MenuState>()((set, get) => ({
@@ -33,6 +38,13 @@ export const useMenuStore = create<MenuState>()((set, get) => ({
     const fetched = await productApi.getAll();
     if (Array.isArray(fetched) && fetched.length > 0) {
       set({ products: fetched });
+    }
+  },
+
+  fetchCategories: async () => {
+    const fetched = await categoryApi.getAll();
+    if (Array.isArray(fetched) && fetched.length > 0) {
+      set({ categories: fetched });
     }
   },
 
@@ -104,7 +116,41 @@ export const useMenuStore = create<MenuState>()((set, get) => ({
     });
     await productApi.delete(productId);
   },
+
+  addCategory: async (categoryData) => {
+    const catId = categoryData.id || `cat_${Date.now()}`;
+    const newCategory: Category = {
+      id: catId,
+      name: categoryData.name || 'Danh mục mới',
+      icon: categoryData.icon || '☕',
+      description: categoryData.description || '',
+    };
+
+    const currentCategories = Array.isArray(get().categories) ? get().categories : [];
+    set({ categories: [...currentCategories, newCategory] });
+
+    const saved = await categoryApi.create(newCategory);
+    return saved || newCategory;
+  },
+
+  updateCategory: async (id, updatedData) => {
+    const currentCategories = Array.isArray(get().categories) ? get().categories : [];
+    set({
+      categories: currentCategories.map((c) => (c.id === id ? { ...c, ...updatedData } : c)),
+    });
+    await categoryApi.update(id, updatedData);
+  },
+
+  deleteCategory: async (id) => {
+    const currentCategories = Array.isArray(get().categories) ? get().categories : [];
+    set({
+      categories: currentCategories.filter((c) => c.id !== id),
+    });
+    await categoryApi.delete(id);
+  },
 }));
 
-// Automatically fetch products from MongoDB on load
+// Automatically fetch products & categories on load
 useMenuStore.getState().fetchProducts();
+useMenuStore.getState().fetchCategories();
+

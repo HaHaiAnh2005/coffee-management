@@ -10,26 +10,13 @@ import { BannerCarousel } from '../../components/common/BannerCarousel';
 
 export const Menu: React.FC = () => {
   const navigate = useNavigate();
-  const { products, selectedCategory, setSelectedCategory, searchQuery, setSearchQuery } = useProductStore();
+  const { products, categories, selectedCategory, setSelectedCategory, searchQuery, setSearchQuery } = useProductStore();
   const { items, addItem } = useCartStore();
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [sortBy, setSortBy] = useState<'default' | 'price-low' | 'price-high'>('default');
 
-  // Auto detect old cached products in browser and instantly replace with 22 new Bồng Biêng items
-  useEffect(() => {
-    const hasOldData = products.some((p) => p.id.startsWith('P') || p.categoryId === 'coffee');
-    if (hasOldData || products.length < 20) {
-      useProductStore.setState({
-        products: INITIAL_PRODUCTS,
-        categories: INITIAL_CATEGORIES,
-        selectedCategoryId: 'all',
-        selectedCategory: 'all',
-      });
-    }
-  }, [products]);
-
-  const displayProducts = INITIAL_PRODUCTS;
-  const displayCategories = INITIAL_CATEGORIES;
+  const displayProducts = products;
+  const displayCategories = categories;
 
   const cartItemsCount = items.reduce((sum, item) => sum + item.quantity, 0);
   const cartTotalPrice = items.reduce((sum, item) => sum + item.itemTotalPrice, 0);
@@ -124,7 +111,7 @@ export const Menu: React.FC = () => {
             )}
           </button>
 
-          {INITIAL_CATEGORIES.map((cat) => {
+          {displayCategories.map((cat) => {
             const count = displayProducts.filter((p) => p.categoryId === cat.id).length;
             const isSelected = selectedCategory === cat.id;
 
@@ -160,7 +147,7 @@ export const Menu: React.FC = () => {
             {filteredProducts.map((product) => {
               const isMustTry = ['M101', 'M503'].includes(product.id);
               const isNew = ['M501', 'M502'].includes(product.id);
-              const catObj = INITIAL_CATEGORIES.find((c) => c.id === product.categoryId);
+              const catObj = displayCategories.find((c) => c.id === product.categoryId);
 
               return (
                 <div

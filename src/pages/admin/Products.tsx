@@ -1,17 +1,38 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useProductStore } from '../../store/product.store';
 import { formatCurrency } from '../../utils/formatCurrency';
-import { INITIAL_CATEGORIES } from '../../data/mockData';
 import type { Product } from '../../types';
 import { FiCoffee, FiPlus, FiTrash2, FiEdit2, FiToggleLeft, FiToggleRight, FiSearch, FiFilter, FiBookOpen } from 'react-icons/fi';
 import { ImageDropzone } from '../../components/common/ImageDropzone';
 import { getProductStoryDetail } from '../../utils/productStories';
 
 export const Products: React.FC = () => {
-  const { products, toggleAvailability, addProduct, updateProduct, deleteProduct } = useProductStore();
+  const { products, categories, toggleAvailability, addProduct, updateProduct, deleteProduct } = useProductStore();
 
-  const [filterCategory, setFilterCategory] = useState('all');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const categoryParam = searchParams.get('category');
+
+  const [filterCategory, setFilterCategory] = useState(categoryParam || 'all');
   const [search, setSearch] = useState('');
+
+  // Sync category filter when URL search params change
+  useEffect(() => {
+    if (categoryParam) {
+      setFilterCategory(categoryParam);
+    } else {
+      setFilterCategory('all');
+    }
+  }, [categoryParam]);
+
+  const handleSelectCategoryFilter = (catId: string) => {
+    setFilterCategory(catId);
+    if (catId === 'all') {
+      setSearchParams({});
+    } else {
+      setSearchParams({ category: catId });
+    }
+  };
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -19,7 +40,7 @@ export const Products: React.FC = () => {
 
   // Form State
   const [name, setName] = useState('');
-  const [categoryId, setCategoryId] = useState('tea_flower');
+  const [categoryId, setCategoryId] = useState(categories[0]?.id || 'tea_flower');
   const [price, setPrice] = useState(55000);
   const [image, setImage] = useState('');
   const [description, setDescription] = useState('');
@@ -31,7 +52,7 @@ export const Products: React.FC = () => {
   const openAddModal = () => {
     setEditingProduct(null);
     setName('');
-    setCategoryId('tea_flower');
+    setCategoryId(categories[0]?.id || 'tea_flower');
     setPrice(55000);
     setImage('');
     setDescription('');
@@ -127,7 +148,7 @@ export const Products: React.FC = () => {
         {/* Category Pills */}
         <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto scrollbar-none">
           <button
-            onClick={() => setFilterCategory('all')}
+            onClick={() => handleSelectCategoryFilter('all')}
             className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap border transition-all cursor-pointer ${
               filterCategory === 'all'
                 ? 'bg-sky-600 text-white border-sky-600 font-extrabold shadow-xs'
@@ -136,10 +157,10 @@ export const Products: React.FC = () => {
           >
             <FiFilter className="inline mr-1" /> Tất cả ({products.length})
           </button>
-          {INITIAL_CATEGORIES.map((c) => (
+          {categories.map((c) => (
             <button
               key={c.id}
-              onClick={() => setFilterCategory(c.id)}
+              onClick={() => handleSelectCategoryFilter(c.id)}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap border transition-all cursor-pointer ${
                 filterCategory === c.id
                   ? 'bg-sky-600 text-white border-sky-600 font-extrabold shadow-xs'
@@ -187,7 +208,7 @@ export const Products: React.FC = () => {
                   </div>
                 </td>
                 <td className="p-4 font-semibold text-stone-600">
-                  {INITIAL_CATEGORIES.find((c) => c.id === p.categoryId)?.name || p.categoryId}
+                  {categories.find((c) => c.id === p.categoryId)?.name || p.categoryId}
                 </td>
                 <td className="p-4 font-extrabold text-sky-800 text-sm">{formatCurrency(p.price)}</td>
                 <td className="p-4">
@@ -266,7 +287,7 @@ export const Products: React.FC = () => {
                   onChange={(e) => setCategoryId(e.target.value)}
                   className="w-full bg-sky-50/40 border border-sky-200 rounded-xl px-3.5 py-2 text-xs text-stone-900 focus:outline-none focus:border-sky-500 cursor-pointer"
                 >
-                  {INITIAL_CATEGORIES.map((c) => (
+                  {categories.map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.name}
                     </option>

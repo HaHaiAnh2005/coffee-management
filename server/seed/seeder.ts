@@ -227,6 +227,15 @@ const FULL_PRODUCTS = [
     description: 'Bánh su kem vỏ giòn nhẹ nhân kem vị trà hoặc vani mát lạnh béo mịn.',
     isAvailable: true,
   },
+  {
+    id: 'M801',
+    name: 'Matcha Uji Kem Mây (Bồng Biêng)',
+    categoryId: 'signature_matcha',
+    price: 68000,
+    image: 'https://images.unsplash.com/photo-1536256263959-770b48d82b0a?auto=format&fit=crop&w=800&q=80',
+    description: 'Matcha Uji Shizuoka thượng hạng phủ ngọn kem mây mềm mịn bồng bềnh.',
+    isAvailable: true,
+  },
 ];
 
 export const seedData = async (): Promise<void> => {
@@ -235,13 +244,14 @@ export const seedData = async (): Promise<void> => {
     if (categoryCount === 0) {
       console.log('[Seeder] Seeding initial categories...');
       await Category.insertMany([
-        { id: 'tea_flower', name: '🧋 TRÀ SỮA HƯƠNG HOA', icon: 'FiFeather' },
-        { id: 'cloud_cream', name: '☁️ KEM MÂY', icon: 'FiSmile' },
-        { id: 'kem_cheese', name: '🧀 KEM CHEESE', icon: 'FiZap' },
-        { id: 'de_cuoi', name: '🥜 SERIES DẺ CƯỜI', icon: 'FiCoffee' },
-        { id: 'fresh_fruit', name: '🍹 TRÀ TRÁI CÂY TƯƠI', icon: 'FiZap' },
-        { id: 'fruit_cheese', name: '🍇 TRÀ TRÁI CÂY KEM CHEESE', icon: 'FiSmile' },
-        { id: 'pastry', name: '🥐 SERIES BÁNH', icon: 'FiPieChart' },
+        { id: 'tea_flower', name: '🧋 TRÀ SỮA HƯƠNG HOA', icon: '🧋' },
+        { id: 'cloud_cream', name: '☁️ KEM MÂY', icon: '☁️' },
+        { id: 'kem_cheese', name: '🧀 KEM CHEESE', icon: '🧀' },
+        { id: 'de_cuoi', name: '🥜 SERIES DẺ CƯỜI', icon: '🥜' },
+        { id: 'fresh_fruit', name: '🍹 TRÀ TRÁI CÂY TƯƠI', icon: '🍹' },
+        { id: 'fruit_cheese', name: '🍇 TRÀ TRÁI CÂY KEM CHEESE', icon: '🍇' },
+        { id: 'pastry', name: '🥐 SERIES BÁNH', icon: '🥐' },
+        { id: 'signature_matcha', name: '🍵 MATCHA THƯỢNG HẠNG', icon: '🍵' },
       ]);
     }
 
