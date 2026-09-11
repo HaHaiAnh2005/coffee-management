@@ -21,6 +21,7 @@ import { Profile } from '../pages/client/Profile';
 import { Login } from '../pages/client/Login';
 import { Register } from '../pages/client/Register';
 import { TableMap } from '../pages/client/TableMap';
+import { PaymentResult } from '../pages/client/PaymentResult';
 
 // Admin Pages
 import { StaffLogin } from '../pages/admin/StaffLogin';
@@ -56,6 +57,7 @@ export const AppRoutes: React.FC = () => {
         <Route path="product/:id" element={<ProductDetail />} />
         <Route path="cart" element={<Cart />} />
         <Route path="checkout" element={<Checkout />} />
+        <Route path="payment-result" element={<PaymentResult />} />
         <Route path="so-do-ban" element={<TableMap />} />
         <Route path="ban-trong" element={<TableMap />} />
         <Route

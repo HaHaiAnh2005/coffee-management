@@ -8,6 +8,7 @@ import { generateVietQRUrl } from '../../utils/helpers';
 import { calculateSubtotal } from '../../utils/calculateTotal';
 import { FiCheckCircle, FiDollarSign, FiUserCheck } from 'react-icons/fi';
 import { BsQrCode } from 'react-icons/bs';
+import axios from 'axios';
 
 export const Checkout: React.FC = () => {
   const navigate = useNavigate();
@@ -43,34 +44,46 @@ export const Checkout: React.FC = () => {
   // Generated VNPAY QR link simulation
   const vnpayQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=00020101021238570010A0000007270127000697042201130988888888520458125303704540${total}5802VN5921BONG%20BIENG%20VNPAY6007HA%20NOI62190815BONGBIENG1001`;
 
-  const handleSubmitOrder = (e: React.FormEvent) => {
+  const handleSubmitOrder = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!customerName || !phone) return;
+    if (!customerName || !phone) {
+      alert('Vui lòng nhập họ tên và số điện thoại nhận hàng!');
+      return;
+    }
 
     try {
       localStorage.setItem('last_customer_phone', phone);
       localStorage.setItem('last_customer_name', customerName);
     } catch (e) {}
 
+    // Thanh toán qua Cổng VNPay hoặc MoMo
     if (paymentMethod === 'momo' || paymentMethod === 'vnpay') {
       setIsProcessingGateway(true);
-      setTimeout(() => {
-        setIsProcessingGateway(false);
-        createOrder({
-          isTakeaway: true,
+      try {
+        const response = await axios.post('/api/payment/create-url', {
+          paymentMethod,
+          amount: total,
+          customerName,
+          customerPhone: phone,
           items,
           subtotal,
           discount: 0,
-          total,
-          paymentMethod,
-          status: 'completed',
-          cashierName: 'Cổng Thanh Toán Online',
-          customerName,
-          customerPhone: phone,
+          isTakeaway: true,
         });
-        setIsSuccess(true);
-      }, 2500);
-      return;
+
+        if (response.data.success && response.data.paymentUrl) {
+          // Chuyển hướng người dùng sang cổng thanh toán chính thức
+          window.location.href = response.data.paymentUrl;
+          return;
+        } else {
+          throw new Error(response.data.message || 'Không thể tạo liên kết thanh toán');
+        }
+      } catch (err: any) {
+        console.error('Lỗi khởi tạo thanh toán:', err);
+        setIsProcessingGateway(false);
+        alert(err.response?.data?.message || err.message || 'Lỗi khởi tạo cổng thanh toán. Vui lòng thử lại!');
+        return;
+      }
     }
 
     createOrder({

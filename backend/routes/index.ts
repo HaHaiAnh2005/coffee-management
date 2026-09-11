@@ -12,6 +12,7 @@ import settingsRoute from './settings.route';
 import shiftRoute from './shift.route';
 import auditRoute from './audit.route';
 import chatbotRoute from './chatbot.route';
+import paymentRoute from './payment.route';
 
 const router = Router();
 
@@ -50,5 +51,6 @@ router.use('/shifts', shiftRoute);
 router.use('/audit-logs', auditRoute);
 router.use('/settings', settingsRoute);
 router.use('/chatbot', chatbotRoute);
+router.use('/payment', paymentRoute);
 
 export default router;
