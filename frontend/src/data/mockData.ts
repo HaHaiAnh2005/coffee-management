@@ -1,4 +1,4 @@
-import type { Area, Category, InventoryItem, Product, StoreSettings, Table } from '../types';
+import type { Category, InventoryItem, InventoryReceipt, Product, StoreSettings } from '../types';
 
 export const INITIAL_CATEGORIES: Category[] = [
   { id: 'tea_flower', name: '🧋 TRÀ SỮA HƯƠNG HOA', icon: '🧋' },
@@ -9,19 +9,6 @@ export const INITIAL_CATEGORIES: Category[] = [
   { id: 'fruit_cheese', name: '🍇 TRÀ TRÁI CÂY KEM CHEESE', icon: '🍇' },
   { id: 'pastry', name: '🥐 SERIES BÁNH', icon: '🥐' },
   { id: 'signature_matcha', name: '🍵 MATCHA THƯỢNG HẠNG', icon: '🍵', description: 'Series Matcha Uji Nhật Bản nguyên chất ngậy thơm bồng bềnh' },
-];
-
-export const INITIAL_AREAS: Area[] = [
-  { id: 'floor1', name: 'Tầng 1 - Máy Lạnh & Quầy Bar' },
-  { id: 'floor2', name: 'Tầng 2 - Không Gian Yên Tĩnh' },
-  { id: 'garden', name: 'Sân Vườn - Thơ Mộng Bồng Biêng' },
-];
-
-export const INITIAL_TABLES: Table[] = [
-  { id: 'T01', name: 'Bàn 01 (Cửa Sổ)', areaId: 'floor1', capacity: 2, status: 'occupied', currentOrderId: 'ORD-1001', occupiedAt: '2026-07-31 13:45' },
-  { id: 'T02', name: 'Bàn 02', areaId: 'floor1', capacity: 4, status: 'available' },
-  { id: 'T03', name: 'Bàn 03', areaId: 'floor1', capacity: 4, status: 'occupied', currentOrderId: 'ORD-1002', occupiedAt: '2026-07-31 14:10' },
-  { id: 'T04', name: 'Bàn Sofa VIP 1', areaId: 'floor1', capacity: 6, status: 'reserved' },
 ];
 
 export const INITIAL_PRODUCTS: Product[] = [
@@ -259,8 +246,87 @@ export const INITIAL_PRODUCTS: Product[] = [
 ];
 
 export const INITIAL_INVENTORY: InventoryItem[] = [
-  { id: 'INV01', name: 'Hạt Cà Phê Robusta Đắk Lắk', unit: 'Kg', quantity: 24.5, minAlertThreshold: 5, category: 'Cà phê hạt', lastUpdated: '2026-07-31 08:00' },
-  { id: 'INV02', name: 'Cốt Trà Nhài Tươi Bông Biêng', unit: 'Kg', quantity: 15.0, minAlertThreshold: 4, category: 'Trà & Hoa', lastUpdated: '2026-07-31 08:00' },
+  { id: 'INV01', sku: 'NL-CF-01', name: 'Hạt Cà Phê Mộc Arabica Cầu Đất', unit: 'Kg', quantity: 28.5, unitPrice: 220000, minAlertThreshold: 6, category: 'Cà phê', supplier: 'Nông Sản Cầu Đất', lastUpdated: '2026-09-14 08:30' },
+  { id: 'INV02', sku: 'NL-CF-02', name: 'Hạt Cà Phê Robusta Honey Đắk Lắk', unit: 'Kg', quantity: 35.0, unitPrice: 180000, minAlertThreshold: 8, category: 'Cà phê', supplier: 'Hợp Tác Xã Buôn Ma Thuột', lastUpdated: '2026-09-14 08:30' },
+  { id: 'INV03', sku: 'NL-TRA-01', name: 'Trà Xanh Hoa Nhài Sấy Tươi', unit: 'Kg', quantity: 18.0, unitPrice: 250000, minAlertThreshold: 5, category: 'Trà & Hoa', supplier: 'Trà Mộc Tân Cương', lastUpdated: '2026-09-13 14:15' },
+  { id: 'INV04', sku: 'NL-TRA-02', name: 'Trà Ô Long Quế Hoa Thượng Hạng', unit: 'Kg', quantity: 12.0, unitPrice: 320000, minAlertThreshold: 4, category: 'Trà & Hoa', supplier: 'Trà Sơn Mật Bảo Lộc', lastUpdated: '2026-09-12 10:00' },
+  { id: 'INV05', sku: 'NL-MC-01', name: 'Bột Matcha Uji Shizuoka Nguyên Chất', unit: 'Hộp (500g)', quantity: 8, unitPrice: 450000, minAlertThreshold: 3, category: 'Matcha & Bột', supplier: 'Nhập Khẩu Nhật Bản', lastUpdated: '2026-09-10 16:45' },
+  { id: 'INV06', sku: 'NL-SUA-01', name: 'Sữa Tươi Thanh Trùng Dalat Milk', unit: 'Lít', quantity: 45.0, unitPrice: 36000, minAlertThreshold: 15, category: 'Sữa & Kem', supplier: 'Dalat Milk Việt Nam', lastUpdated: '2026-09-14 07:15' },
+  { id: 'INV07', sku: 'NL-SUA-02', name: 'Kem Béo Thực Vật Rich\'s Creamer', unit: 'Hộp (454ml)', quantity: 30, unitPrice: 28000, minAlertThreshold: 10, category: 'Sữa & Kem', supplier: 'Tân Nhất Hương', lastUpdated: '2026-09-13 11:20' },
+  { id: 'INV08', sku: 'NL-KEM-01', name: 'Cream Cheese Anchor New Zealand', unit: 'Kg', quantity: 14.0, unitPrice: 165000, minAlertThreshold: 4, category: 'Sữa & Kem', supplier: 'Fonterra Brands', lastUpdated: '2026-09-12 15:30' },
+  { id: 'INV09', sku: 'NL-TOP-01', name: 'Hạt Dẻ Cười Rang Muối Tách Vỏ', unit: 'Kg', quantity: 6.5, unitPrice: 280000, minAlertThreshold: 3, category: 'Topping & Hạt', supplier: 'Nông Sản Việt', lastUpdated: '2026-09-11 09:10' },
+  { id: 'INV10', sku: 'NL-SR-01', name: 'Siro Đào Golden Farm', unit: 'Chai (700ml)', quantity: 12, unitPrice: 85000, minAlertThreshold: 4, category: 'Siro & Đường', supplier: 'Golden Farm Corp', lastUpdated: '2026-09-09 13:40' },
+  { id: 'INV11', sku: 'NL-DG-01', name: 'Đường Nước Mía Tự Nhiên', unit: 'Can (5 Lít)', quantity: 15, unitPrice: 135000, minAlertThreshold: 5, category: 'Siro & Đường', supplier: 'Đường Biên Hòa', lastUpdated: '2026-09-14 08:00' },
+  { id: 'INV12', sku: 'NL-BB-01', name: 'Ly Giấy Kraft 500ml Logo Bồng Biêng', unit: 'Cây (50 cái)', quantity: 40, unitPrice: 65000, minAlertThreshold: 10, category: 'Bao bì & Ly', supplier: 'Xưởng In Bao Bì Xanh', lastUpdated: '2026-09-10 10:20' },
+];
+
+export const INITIAL_RECEIPTS: InventoryReceipt[] = [
+  {
+    id: 'rcpt_01',
+    code: 'PNK-20260910-001',
+    type: 'IMPORT',
+    reason: 'Nhập nguyên liệu định kỳ tuần 2 tháng 9',
+    supplier: 'Tổng Kho Nguyên Liệu Tân Cương & Dalat Milk',
+    creatorName: 'Trần Thị Quản Lý',
+    items: [
+      { materialId: 'INV01', materialName: 'Hạt Cà Phê Mộc Arabica Cầu Đất', unit: 'Kg', quantity: 20, unitPrice: 220000, totalPrice: 4400000 },
+      { materialId: 'INV03', materialName: 'Trà Xanh Hoa Nhài Sấy Tươi', unit: 'Kg', quantity: 15, unitPrice: 250000, totalPrice: 3750000 },
+      { materialId: 'INV06', materialName: 'Sữa Tươi Thanh Trùng Dalat Milk', unit: 'Lít', quantity: 40, unitPrice: 36000, totalPrice: 1440000 },
+    ],
+    totalAmount: 9590000,
+    notes: 'Hàng nhập đủ số lượng, bao bì nguyên vẹn, hạn sử dụng trên 12 tháng.',
+    status: 'COMPLETED',
+    createdAt: '2026-09-10 09:30',
+  },
+  {
+    id: 'rcpt_02',
+    code: 'PNK-20260912-002',
+    type: 'IMPORT',
+    reason: 'Nhập bổ sung nguyên liệu Kem & Topping Dẻ Cười',
+    supplier: 'Fonterra Brands & Nông Sản Việt',
+    creatorName: 'Nguyễn Văn Chủ Quán',
+    items: [
+      { materialId: 'INV08', materialName: 'Cream Cheese Anchor New Zealand', unit: 'Kg', quantity: 10, unitPrice: 165000, totalPrice: 1650000 },
+      { materialId: 'INV09', materialName: 'Hạt Dẻ Cười Rang Muối Tách Vỏ', unit: 'Kg', quantity: 5, unitPrice: 280000, totalPrice: 1400000 },
+      { materialId: 'INV05', materialName: 'Bột Matcha Uji Shizuoka Nguyên Chất', unit: 'Hộp (500g)', quantity: 6, unitPrice: 450000, totalPrice: 2700000 },
+    ],
+    totalAmount: 5750000,
+    notes: 'Đã lưu kho lạnh bảo quản đối với Cream Cheese ở nhiệt độ 2-4 độ C.',
+    status: 'COMPLETED',
+    createdAt: '2026-09-12 14:15',
+  },
+  {
+    id: 'rcpt_03',
+    code: 'PXK-20260913-001',
+    type: 'EXPORT',
+    reason: 'Xuất pha chế quầy Bar & chế biến trà sữa trực tuyến',
+    creatorName: 'Lê Thị Pha Chế',
+    items: [
+      { materialId: 'INV01', materialName: 'Hạt Cà Phê Mộc Arabica Cầu Đất', unit: 'Kg', quantity: 3.5, unitPrice: 220000, totalPrice: 770000 },
+      { materialId: 'INV03', materialName: 'Trà Xanh Hoa Nhài Sấy Tươi', unit: 'Kg', quantity: 2.0, unitPrice: 250000, totalPrice: 500000 },
+      { materialId: 'INV06', materialName: 'Sữa Tươi Thanh Trùng Dalat Milk', unit: 'Lít', quantity: 15.0, unitPrice: 36000, totalPrice: 540000 },
+    ],
+    totalAmount: 1810000,
+    notes: 'Xuất pha chế đơn hàng ngày 13/09',
+    status: 'COMPLETED',
+    createdAt: '2026-09-13 08:00',
+  },
+  {
+    id: 'rcpt_04',
+    code: 'PXK-20260914-002',
+    type: 'EXPORT',
+    reason: 'Xuất nguyên liệu cho ca sáng & bao bì đóng gói mang đi',
+    creatorName: 'Trần Thị Quản Lý',
+    items: [
+      { materialId: 'INV02', materialName: 'Hạt Cà Phê Robusta Honey Đắk Lắk', unit: 'Kg', quantity: 4.0, unitPrice: 180000, totalPrice: 720000 },
+      { materialId: 'INV04', materialName: 'Trà Ô Long Quế Hoa Thượng Hạng', unit: 'Kg', quantity: 1.5, unitPrice: 320000, totalPrice: 480000 },
+      { materialId: 'INV12', materialName: 'Ly Giấy Kraft 500ml Logo Bồng Biêng', unit: 'Cây (50 cái)', quantity: 5, unitPrice: 65000, totalPrice: 325000 },
+    ],
+    totalAmount: 1525000,
+    notes: 'Xuất phục vụ ca sáng ngày 14/09',
+    status: 'COMPLETED',
+    createdAt: '2026-09-14 07:30',
+  },
 ];
 
 export const INITIAL_SETTINGS: StoreSettings = {

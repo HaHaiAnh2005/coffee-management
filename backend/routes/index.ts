@@ -3,7 +3,6 @@ import authRoute from './auth.route';
 import userRoute from './user.route';
 import productRoute from './product.route';
 import categoryRoute from './category.route';
-import tableRoute from './table.route';
 import orderRoute from './order.route';
 import customerRoute from './customer.route';
 import couponRoute from './coupon.route';
@@ -25,7 +24,6 @@ router.get('/', (req, res) => {
       auth: '/api/auth',
       products: '/api/products',
       categories: '/api/categories',
-      tables: '/api/tables',
       orders: '/api/orders',
       customers: '/api/customers',
       coupons: '/api/coupons',
@@ -42,7 +40,6 @@ router.use('/auth', authRoute);
 router.use('/users', userRoute);
 router.use('/products', productRoute);
 router.use('/categories', categoryRoute);
-router.use('/tables', tableRoute);
 router.use('/orders', orderRoute);
 router.use('/customers', customerRoute);
 router.use('/coupons', couponRoute);

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useCartStore } from '../stores/useCartStore';
 import { useOrderStore } from '../stores/useOrderStore';
-import { useTableStore } from '../stores/useTableStore';
 import { useSettingsStore } from '../stores/useSettingsStore';
 import { formatVND, formatDate } from '../utils/formatters';
 import { generateVietQRUrl } from '../utils/vietqr';
@@ -19,7 +18,6 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
   const { items, selectedTableId, selectedTableName, isTakeaway, discount, getSubtotal, getTotal, clearCart } =
     useCartStore();
   const { createOrder } = useOrderStore();
-  const { updateTableStatus } = useTableStore();
   const { settings } = useSettingsStore();
 
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('vietqr');
@@ -36,7 +34,7 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
     settings.bankAccountNo,
     settings.bankAccountName,
     total,
-    `88 BONG BIENG THANH TOAN BAN ${selectedTableName || 'TAKEAWAY'}`
+    `88 BONG BIENG THANH TOAN DON HANG ${selectedTableName ? 'BAN ' + selectedTableName : 'TAKEAWAY'}`
   );
 
   const handleConfirmPayment = () => {
@@ -52,10 +50,6 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
       status: 'completed',
       cashierName: 'Thu Ngân 01',
     });
-
-    if (selectedTableId) {
-      updateTableStatus(selectedTableId, 'available');
-    }
 
     setCreatedOrderCode(newOrder.code);
     setIsSuccess(true);

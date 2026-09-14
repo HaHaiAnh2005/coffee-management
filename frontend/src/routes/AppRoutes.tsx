@@ -20,7 +20,6 @@ import { Contact } from '../pages/client/Contact';
 import { Profile } from '../pages/client/Profile';
 import { Login } from '../pages/client/Login';
 import { Register } from '../pages/client/Register';
-import { TableMap } from '../pages/client/TableMap';
 import { PaymentResult } from '../pages/client/PaymentResult';
 
 // Admin Pages
@@ -28,7 +27,6 @@ import { StaffLogin } from '../pages/admin/StaffLogin';
 import { Dashboard } from '../pages/admin/Dashboard';
 import { Products } from '../pages/admin/Products';
 import { Categories } from '../pages/admin/Categories';
-import { Tables } from '../pages/admin/Tables';
 import { Employees } from '../pages/admin/Employees';
 import { Customers } from '../pages/admin/Customers';
 import { Orders } from '../pages/admin/Orders';
@@ -36,13 +34,11 @@ import { Coupons } from '../pages/admin/Coupons';
 import { Reports } from '../pages/admin/Reports';
 import { AuditLogs } from '../pages/admin/AuditLogs';
 import { Settings } from '../pages/admin/Settings';
+import { Inventory } from '../pages/admin/Inventory';
 
 // Route Guards
 import { PrivateRoute } from './PrivateRoute';
 import { AdminRoute } from './AdminRoute';
-
-// Internal POS Page
-import { POSPage } from '../pages/POSPage';
 
 export const AppRoutes: React.FC = () => {
   return (
@@ -58,8 +54,6 @@ export const AppRoutes: React.FC = () => {
         <Route path="cart" element={<Cart />} />
         <Route path="checkout" element={<Checkout />} />
         <Route path="payment-result" element={<PaymentResult />} />
-        <Route path="so-do-ban" element={<TableMap />} />
-        <Route path="ban-trong" element={<TableMap />} />
         <Route
           path="order-history"
           element={
@@ -97,12 +91,12 @@ export const AppRoutes: React.FC = () => {
         }
       >
         <Route path="admin/dashboard" element={<Dashboard />} />
-        <Route path="admin/pos" element={<POSPage />} />
+        <Route path="admin/orders" element={<Orders />} />
         <Route path="admin/products" element={<Products />} />
         <Route path="admin/categories" element={<Categories />} />
+        <Route path="admin/inventory" element={<Inventory />} />
         <Route path="admin/employees" element={<Employees />} />
         <Route path="admin/customers" element={<Customers />} />
-        <Route path="admin/orders" element={<Orders />} />
         <Route path="admin/coupons" element={<Coupons />} />
         <Route path="admin/reports" element={<Reports />} />
         <Route path="admin/audit-logs" element={<AuditLogs />} />

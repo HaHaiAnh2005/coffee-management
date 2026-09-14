@@ -83,14 +83,12 @@ export const Navbar: React.FC = () => {
               {user.role !== 'CUSTOMER' && (
                 <Link
                   to={
-                    ['CASHIER', 'WAITER'].includes(user.role)
-                      ? '/admin/pos'
-                      : user.role === 'BARISTA'
+                    ['CASHIER', 'WAITER', 'BARISTA'].includes(user.role)
                       ? '/admin/orders'
                       : '/admin/dashboard'
                   }
                   className="px-2.5 py-1 rounded-lg bg-amber-500 text-stone-950 font-bold text-[11px] flex items-center gap-1 hover:bg-amber-400 transition-colors shadow-sm"
-                  title="Vào giao diện Nội Bộ / POS"
+                  title="Vào giao diện Quản Trị / Nội Bộ"
                 >
                   <FiShield /> {user.role} Portal
                 </Link>

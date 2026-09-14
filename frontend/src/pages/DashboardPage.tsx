@@ -1,6 +1,5 @@
 import React from 'react';
 import { useOrderStore } from '../stores/useOrderStore';
-import { useTableStore } from '../stores/useTableStore';
 import { useMenuStore } from '../stores/useMenuStore';
 import { useInventoryStore } from '../stores/useInventoryStore';
 import { StatCard } from '../components/StatCard';
@@ -8,7 +7,7 @@ import { formatVND, formatDate } from '../utils/formatters';
 import {
   FiDollarSign,
   FiShoppingBag,
-  FiGrid,
+  FiCoffee,
   FiTrendingUp,
   FiBarChart2,
   FiAlertCircle,
@@ -16,12 +15,10 @@ import {
 
 export const DashboardPage: React.FC = () => {
   const { getTodayStats, orders } = useOrderStore();
-  const { tables } = useTableStore();
   const { products } = useMenuStore();
   const { getLowStockItems } = useInventoryStore();
 
   const stats = getTodayStats();
-  const occupiedTables = tables.filter((t) => t.status === 'occupied').length;
   const lowStock = getLowStockItems();
 
   return (
@@ -57,10 +54,10 @@ export const DashboardPage: React.FC = () => {
           color="emerald"
         />
         <StatCard
-          title="Bàn Đang Phục Vụ"
-          value={`${occupiedTables} / ${tables.length}`}
-          subtext={`Công suất sử dụng: ${Math.round((occupiedTables / tables.length) * 100)}%`}
-          icon={FiGrid}
+          title="Sản Phẩm Trong Thực Đơn"
+          value={products.length}
+          subtext={`${products.filter((p) => p.isAvailable).length} món đang phục vụ`}
+          icon={FiCoffee}
           color="blue"
         />
         <StatCard

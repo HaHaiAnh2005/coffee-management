@@ -7,9 +7,9 @@ import type { Role } from '../../types/auth';
 const DEMO_STAFF = [
   { id: 'EMP01', name: 'Nguyễn Văn Chủ Quán', role: 'ADMIN' as Role, roleLabel: 'Chủ Quán (Admin)', pin: '9999', phone: '0988888888', path: '/admin/dashboard' },
   { id: 'EMP02', name: 'Trần Thị Quản Lý', role: 'MANAGER' as Role, roleLabel: 'Quản Lý Cửa Hàng', pin: '1234', phone: '0989999999', path: '/admin/dashboard' },
-  { id: 'EMP03', name: 'Nguyễn Văn Thu Ngân', role: 'CASHIER' as Role, roleLabel: 'Thu Ngân POS', pin: 'N/A', phone: '0978888888', path: '/admin/pos' },
+  { id: 'EMP03', name: 'Nguyễn Văn Thu Ngân', role: 'CASHIER' as Role, roleLabel: 'Thu Ngân & Đơn Hàng', pin: 'N/A', phone: '0978888888', path: '/admin/orders' },
   { id: 'EMP04', name: 'Lê Thị Pha Chế', role: 'BARISTA' as Role, roleLabel: 'Pha Chế / Bếp', pin: 'N/A', phone: '0977777777', path: '/admin/orders' },
-  { id: 'EMP05', name: 'Trần Văn Phục Vụ', role: 'WAITER' as Role, roleLabel: 'Phục Vụ Bàn', pin: 'N/A', phone: '0966666666', path: '/admin/pos' },
+  { id: 'EMP05', name: 'Trần Văn Phục Vụ', role: 'WAITER' as Role, roleLabel: 'Nhân Viên Hỗ Trợ', pin: 'N/A', phone: '0966666666', path: '/admin/orders' },
 ];
 
 export const StaffLogin: React.FC = () => {

@@ -10,7 +10,6 @@ export const API_ENDPOINTS = {
   PRODUCTS: '/products',
   CATEGORIES: '/categories',
   ORDERS: '/orders',
-  TABLES: '/tables',
   EMPLOYEES: '/employees',
   CUSTOMERS: '/customers',
   DASHBOARD: '/dashboard/stats',

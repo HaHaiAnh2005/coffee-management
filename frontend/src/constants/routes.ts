@@ -14,7 +14,7 @@ export const ROUTES = {
     DASHBOARD: '/admin/dashboard',
     PRODUCTS: '/admin/products',
     CATEGORIES: '/admin/categories',
-    TABLES: '/admin/tables',
+    INVENTORY: '/admin/inventory',
     EMPLOYEES: '/admin/employees',
     CUSTOMERS: '/admin/customers',
     ORDERS: '/admin/orders',

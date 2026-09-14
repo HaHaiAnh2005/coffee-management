@@ -1,4 +1,4 @@
-# ☕ Smart Coffee Shop Management & POS System
+# ☕ Smart Online Coffee Shop & Warehouse Management System
 
 [![React](https://img.shields.io/badge/React-19.2-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
@@ -10,7 +10,7 @@
 
 [**Tiếng Việt**](README.md) | [**English**](README.en.md)
 
-> **Coffee Management System** is an all-in-one, modern enterprise solution designed for coffee shops and beverage chains. It seamlessly integrates a **Customer Ordering Portal**, a touch-optimized **Point of Sale (POS) System**, an **Administrative Management Hub**, and a smart **AI Virtual Assistant powered by Google Gemini**.
+> **Coffee Management System** is an all-in-one, modern enterprise solution designed for coffee shops and beverage chains operating an **Online-First Delivery & Takeaway Model**. It seamlessly integrates a **Customer Ordering Portal**, an **Online Orders Management Hub**, an **Administrative Management Hub with Raw Material & Warehouse In/Out Vouchers**, and a smart **AI Virtual Assistant powered by Google Gemini**.
 
 ---
 
@@ -19,7 +19,7 @@
 1. [Project Overview](#-project-overview)
 2. [Key Features](#-key-features)
    - [Customer Portal](#1-customer-portal)
-   - [Point of Sale (POS) System](#2-point-of-sale-pos-system)
+   - [Online Orders Processing](#2-online-orders-processing)
    - [Administrative Portal](#3-administrative-portal)
    - [Google Gemini AI Virtual Assistant](#4-google-gemini-ai-virtual-assistant)
 3. [Tech Stack](#-tech-stack)
@@ -36,8 +36,8 @@
 
 The system is architected as a streamlined **Fullstack Monorepo**:
 - **Backend (Express + MongoDB)** and **Frontend (React + Vite)** run concurrently on a single port (`5173`) using **Vite Middleware Mode** (or can be decoupled independently).
-- Features a responsive, smooth, and modern UI tailored for desktop computers, POS touch screens, tablets, and smartphones.
-- Automatically seeds rich mock data (categories, products, table layouts, staff accounts, customers, store settings) upon initial launch.
+- Features a responsive, smooth, and modern UI tailored for desktop computers, tablets, and smartphones.
+- Automatically seeds rich mock data (categories, products, staff accounts, customers, raw materials, warehouse receipts, store settings) upon initial launch.
 
 ---
 
@@ -51,8 +51,7 @@ The system is architected as a streamlined **Fullstack Monorepo**:
   - Item customizer: Size selection, sugar percentage, ice level, and extra toppings.
 - **Shopping Cart & Checkout**:
   - Persistent real-time cart state.
-  - Flexible payment options: Cash on Delivery (COD) or Banking Transfer via Dynamic QR code.
-- **Visual Table Map**: View real-time floor plans and browse table availability before visiting.
+  - Flexible payment options: Cash on Delivery (COD), Banking Transfer via Dynamic QR code, VNPay & MoMo redirect gateways.
 - **Loyalty & Membership Program**:
   - Customer registration, login, and profile management.
   - Points accumulation based on invoice amounts.
@@ -61,20 +60,10 @@ The system is architected as a streamlined **Fullstack Monorepo**:
 
 ---
 
-### 2. Point of Sale (POS) System
-- **Touch-Optimized POS Layout**: Fast beverage selection, organized categories, rapid order customization, and notes for baristas.
-- **Table & Area Management**:
-  - Visual table layouts grouped by areas/floors (Floor 1, Floor 2, Garden Patio, VIP Room).
-  - Move table, merge tables, and split tables with ease.
-  - Real-time table states: *Available*, *Occupied*, and *Reserved*.
-- **Discounts & Loyalty Lookup**:
-  - Quick customer lookup by phone number for loyalty point earning or redemption.
-  - Apply voucher/coupon codes directly to the billing summary.
-- **Shift Management**:
-  - Open shift with initial cash float entry.
-  - Shift handover & closing: Reconciles cash and digital payments, computes cash discrepancies, and prints shift handover receipts.
-- **Manager Override Mechanism**:
-  - Critical actions (voiding dispatched items, cancelling bills, manual promotional discounts) require a secure Manager/Admin PIN to eliminate revenue leakage.
+### 2. Online Orders Processing
+- **Order Dispatching & Fulfillment**: Real-time handling of online customer orders (Delivery & Takeaway).
+- **Multi-Gateway Payment Support**: Cash on Delivery (COD), VietQR instant bank transfer, and redirect gateways for MoMo & VNPay.
+- **Order Status Pipeline**: Seamless lifecycle tracking from `Pending` -> `Confirmed` -> `Delivering` -> `Completed` / `Cancelled`.
 
 ---
 
@@ -85,8 +74,11 @@ The system is architected as a streamlined **Fullstack Monorepo**:
 - **Menu & Category Management**:
   - Full CRUD operations for drinks, categories, images, pricing, and descriptions.
   - Instant stock availability toggle (In Stock / Out of Stock).
-- **Floor & Table Configuration**:
-  - Add and configure table counts, seating capacities, and floor assignments.
+- **Material Inventory & Receipt Management (Stock In / Stock Out Vouchers)**:
+  - Material catalog tracking: SKUs, cost prices, suppliers, units of measurement (kg, liter, box, pack, bag).
+  - **Stock In Receipt (PNK)**: Import ingredients from suppliers with unit cost and quantity, automatically incrementing stock.
+  - **Stock Out Receipt (PXK)**: Issue raw materials to brewing/kitchen counters, automatically validating and deducting available stock balances.
+  - **Professional Printable Voucher Preview**: Styled with 88 BỒNG BIÊNG header, voucher metadata, line items table, VND summary, and 3 formal signature fields (Creator, Deliverer/Receiver, Store Manager).
 - **Staff & Role-Based Access Control (RBAC)**:
   - Granular permissions for roles: `ADMIN`, `MANAGER`, `CASHIER`, `BARISTA`, `WAITER`.
   - Override PIN management for supervisors.
@@ -94,10 +86,8 @@ The system is architected as a streamlined **Fullstack Monorepo**:
   - View member list, reward points, lifetime spend, and auto-tier evaluations.
 - **Promotion & Coupon Engine**:
   - Percentage-based or fixed discounts, usage caps, and expiration date settings.
-- **Inventory Tracking**:
-  - Monitor raw material stock, units of measurement, and low-stock threshold alerts.
 - **Reports & Excel Export**:
-  - Financial, shift, and sales analysis reports.
+  - Financial, order, and sales analysis reports.
   - Export data to `.xlsx` spreadsheets for bookkeeping.
 - **Audit Logs**:
   - Comprehensive logging of sensitive operational events for accountability.
@@ -144,7 +134,7 @@ coffee-management/
 │   ├── config/               # Database connection setup
 │   ├── controllers/          # API business logic controllers
 │   ├── middleware/           # JWT authentication, RBAC authorization
-│   ├── models/               # Mongoose Schemas (User, Product, Order, Table, Shift...)
+│   ├── models/               # Mongoose Schemas (User, Product, Order, Shift...)
 │   ├── routes/               # API route definitions
 │   ├── seed/                 # Database initial seeder
 │   ├── services/             # Core services & Google Gemini AI integration
@@ -154,14 +144,13 @@ coffee-management/
 ├── frontend/                 # Frontend source code (React + Vite)
 │   ├── src/
 │   │   ├── api/              # Axios instance & API requests
-│   │   ├── components/       # Reusable components (POS, Shift, Modals, Navbar...)
+│   │   ├── components/       # Reusable components (Modals, Navbar, Sidebar, Receipts...)
 │   │   ├── layouts/          # Layout wrappers: MainLayout, AdminLayout, AuthLayout
 │   │   ├── pages/
-│   │   │   ├── admin/        # Admin pages (Dashboard, Products, Staff, Reports...)
-│   │   │   ├── client/       # Client pages (Home, Menu, Cart, Profile, Story...)
-│   │   │   └── POSPage.tsx   # POS cashier workstation
+│   │   │   ├── admin/        # Admin pages (Dashboard, Inventory, Orders, Products, Staff...)
+│   │   │   └── client/       # Client pages (Home, Menu, Cart, Profile, Story...)
 │   │   ├── routes/           # Routing configuration & guards (Private, Admin)
-│   │   ├── stores/           # Zustand global state (Auth, Cart, Table...)
+│   │   ├── stores/           # Zustand global state (Auth, Cart, Inventory...)
 │   │   ├── types/            # TypeScript interfaces & types
 │   │   ├── App.tsx           # Root component
 │   │   └── main.tsx          # React DOM entry
@@ -234,10 +223,10 @@ Sign in at: `http://localhost:5173/admin/login`
 | Role | Login Email | Password | Override PIN | Permissions |
 | :--- | :--- | :--- | :--- | :--- |
 | **Store Owner (ADMIN)** | `admin@lauracoffee.vn` | `123456` | `9999` | Full system access, financials, settings, user roles |
-| **Manager (MANAGER)** | `manager@lauracoffee.vn` | `123456` | `1234` | Manage menu, table maps, shift staff, approve overrides |
-| **Cashier (CASHIER)** | `cashier@lauracoffee.vn` | `123456` | — | POS workstation, open/close shifts, print bills |
+| **Manager (MANAGER)** | `manager@lauracoffee.vn` | `123456` | `1234` | Manage menu, staff shifts, approve manager overrides |
+| **Cashier (CASHIER)** | `cashier@lauracoffee.vn` | `123456` | — | Process online delivery/takeaway orders, customer service |
 | **Barista (BARISTA)** | `barista@lauracoffee.vn` | `123456` | — | Kitchen Display System (KDS), drink preparation status |
-| **Server (WAITER)** | `waiter@lauracoffee.vn` | `123456` | — | Table status checking, table-side ordering |
+| **Server (WAITER)** | `waiter@lauracoffee.vn` | `123456` | — | Customer service, order fulfillment |
 
 ### 2. Demo Customer Accounts
 Sign in at: `http://localhost:5173/login`

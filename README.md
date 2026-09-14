@@ -50,8 +50,7 @@ Dự án được xây dựng theo mô hình **Fullstack Monorepo** hiện đạ
   - Trang chi tiết món: Tùy chỉnh kích cỡ (Size), mức đường, lượng đá, chọn món kèm (Topping).
 - **Giỏ hàng & Đặt món**:
   - Giỏ hàng tiện lợi lưu trữ trạng thái mua hàng tức thì.
-  - Đặt hàng & thanh toán linh hoạt (Tiền mặt khi nhận, Chuyển khoản ngân hàng qua mã QR tiện lợi).
-- **Sơ đồ bàn trực quan (Table Map)**: Khách hàng có thể tra cứu sơ đồ các tầng và tìm kiếm bàn trống trước khi tới quán.
+  - Đặt hàng & thanh toán linh hoạt (Tiền mặt khi nhận, Chuyển khoản ngân hàng qua mã QR tiện lợi, Cổng VNPay & MoMo).
 - **Tài khoản & Hội viên thân thiết (Loyalty & Membership)**:
   - Đăng ký, Đăng nhập, Cập nhật thông tin cá nhân.
   - Tích lũy điểm thưởng theo giá trị hóa đơn.
@@ -60,20 +59,12 @@ Dự án được xây dựng theo mô hình **Fullstack Monorepo** hiện đạ
 
 ---
 
-### 2. Phân Hệ Bán Hàng Tại Quầy (POS System)
-- **Giao diện POS cảm ứng chuyên dụng**: Tối ưu tốc độ chọn món, phân loại danh mục trực quan, thêm ghi chú cho Barista nhanh chóng.
-- **Quản lý Bàn & Phòng**:
-  - Sơ đồ bàn phân chia theo khu vực/tầng (Tầng 1, Tầng 2, Sân vườn, Phòng VIP...).
-  - Đổi bàn, gộp bàn, tách bàn linh hoạt.
-  - Hiển thị trực quan trạng thái bàn: *Bàn trống*, *Đang có khách*, *Đã đặt trước*.
-- **Áp dụng khuyến mãi & Khách hàng**:
-  - Tìm kiếm nhanh thông tin khách hàng qua số điện thoại để tích điểm hoặc đổi điểm thưởng.
-  - Áp dụng các mã giảm giá (Coupon voucher) trực tiếp vào hóa đơn.
-- **Quản lý Ca Làm Việc (Shift Management)**:
-  - Bắt đầu ca: Nhập tiền quỹ tiền mặt đầu ca.
-  - Giao ca & Chốt ca: Tự động đối soát doanh thu thực tế giữa tiền mặt và chuyển khoản, tính toán lệch quỹ (Discrepancy) và in biên bản bàn giao ca.
-- **Cơ chế Ghi Đè Quyền Quản Lý (Manager Override)**:
-  - Các thao tác nhạy cảm (Hủy món đã gửi bếp, Hủy hóa đơn, Giảm giá đặc biệt ngoài chính sách) bắt buộc phải nhập mã PIN bảo mật của Quản lý / Admin để phòng tránh thất thoát.
+---
+
+### 2. Phân Hệ Xử Lý Đơn Hàng Trực Tuyến (Online Orders Processing)
+- **Quản lý Tiếp nhận & Điều phối Đơn Hàng**: Xử lý toàn diện các đơn hàng đặt trực tuyến từ khách hàng (Giao tận nơi hoặc Mang về).
+- **Hỗ trợ Đa Cổng Thanh Toán**: Thanh toán Tiền mặt (COD), Chuyển khoản VietQR, và Cổng thanh toán chuyển hướng MoMo & VNPay.
+- **Theo dõi Trạng thái Chế biến**: Điều phối trạng thái đơn từ `Pending` -> `Completed` / `Cancelled`.
 
 ---
 
@@ -84,8 +75,11 @@ Dự án được xây dựng theo mô hình **Fullstack Monorepo** hiện đạ
 - **Quản lý Thực đơn & Danh mục (Products & Categories)**:
   - Thêm, sửa, xóa món, tải ảnh món ăn, thiết lập giá, mô tả.
   - Bật/tắt trạng thái còn món hoặc tạm hết hàng tức thì.
-- **Quản lý Sơ đồ Bàn & Khu vực (Tables & Areas)**:
-  - Thêm/sửa số lượng bàn, sức chứa và phân bổ khu vực.
+- **Quản lý Kho Nguyên Liệu & Phiếu Nhập Xuất (Inventory & Receipts)**:
+  - Quản lý định mức tồn kho, đơn vị tính, đơn giá vốn của từng nguyên liệu pha chế.
+  - Lập **Phiếu Nhập Kho (PNK)** từ nhà cung cấp kèm giá vốn, tự động cộng tồn kho tức thì.
+  - Lập **Phiếu Xuất Kho (PXK)** cho quầy pha chế, tự động khấu trừ tồn kho và kiểm tra lượng tồn thực tế.
+  - Bản in xem trước chứng từ kho chuyên nghiệp đầy đủ chữ ký Người lập, Người nhận, Thủ kho.
 - **Quản lý Nhân sự & Phân quyền (Staff & RBAC)**:
   - Phân quyền theo vai trò rõ ràng: `ADMIN`, `MANAGER`, `CASHIER`, `BARISTA`, `WAITER`.
   - Quản lý mã PIN phê duyệt nội bộ của Quản lý.
@@ -93,10 +87,8 @@ Dự án được xây dựng theo mô hình **Fullstack Monorepo** hiện đạ
   - Quản lý danh sách thành viên, số điểm tích lũy, tổng chi tiêu, thăng hạng thành viên tự động.
 - **Quản lý Mã giảm giá (Coupons)**:
   - Tạo chương trình ưu đãi theo %, theo số tiền cố định, giới hạn lượt dùng và ngày hiệu lực.
-- **Quản lý Tồn kho (Inventory)**:
-  - Theo dõi lượng nguyên vật liệu còn lại, đơn vị tính, cảnh báo sắp hết nguyên liệu.
 - **Báo cáo & Xuất dữ liệu (Reports & Export)**:
-  - Báo cáo phân tích doanh thu, lợi nhuận, ca làm việc.
+  - Báo cáo phân tích doanh thu, lợi nhuận.
   - Hỗ trợ xuất dữ liệu ra file Excel (`.xlsx`) phục vụ kế toán.
 - **Nhật ký hệ thống (Audit Logs)**:
   - Lưu lại toàn bộ lịch sử các tác vụ quan trọng trong hệ thống để giám sát và kiểm tra định kỳ.
@@ -143,7 +135,7 @@ coffee-management/
 │   ├── config/               # Cấu hình kết nối CSDL MongoDB
 │   ├── controllers/          # Bộ điều khiển xử lý nghiệp vụ API
 │   ├── middleware/           # Middleware xác thực JWT, RBAC, phân quyền
-│   ├── models/               # Schema Mongoose (User, Product, Order, Table, Shift, ...)
+│   ├── models/               # Schema Mongoose (User, Product, Order, Shift, ...)
 │   ├── routes/               # Khai báo các endpoints RESTful API
 │   ├── seed/                 # Seeder dữ liệu mẫu ban đầu
 │   ├── services/             # Logic nghiệp vụ & Tích hợp Gemini AI
@@ -160,7 +152,7 @@ coffee-management/
 │   │   │   ├── client/       # Giao diện Khách hàng (Home, Menu, Cart, Profile, Story...)
 │   │   │   └── POSPage.tsx   # Giao diện Bán hàng tại quầy POS
 │   │   ├── routes/           # Cấu hình đường dẫn & Route Guards (Private, Admin)
-│   │   ├── stores/           # Global Store Zustand (Auth, Cart, Table...)
+│   │   ├── stores/           # Global Store Zustand (Auth, Cart, Shift...)
 │   │   ├── types/            # Khai báo TypeScript Interfaces & Types
 │   │   ├── App.tsx           # Component gốc ứng dụng
 │   │   └── main.tsx          # Điểm gắn kết React DOM

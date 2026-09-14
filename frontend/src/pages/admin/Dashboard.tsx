@@ -1,6 +1,5 @@
 import React from 'react';
 import { useOrderStore } from '../../store/order.store';
-import { useTableStore } from '../../stores/useTableStore';
 import { useProductStore } from '../../store/product.store';
 import { useInventoryStore } from '../../stores/useInventoryStore';
 import { StatCard } from '../../components/StatCard';
@@ -10,13 +9,11 @@ import { FiDollarSign, FiShoppingBag, FiGrid, FiTrendingUp, FiAlertCircle } from
 
 export const Dashboard: React.FC = () => {
   const orders = useOrderStore((state) => state.orders);
-  const tables = useTableStore((state) => state.tables);
   const products = useProductStore((state) => state.products);
   const inventoryItems = useInventoryStore((state) => state.items);
 
   const completedOrders = orders.filter((o) => o.status === 'completed');
   const totalRevenue = completedOrders.reduce((sum, o) => sum + o.total, 0);
-  const occupiedTables = tables.filter((t) => t.status === 'occupied').length;
   const lowStock = inventoryItems.filter((i) => i.quantity <= i.minAlertThreshold);
 
   return (

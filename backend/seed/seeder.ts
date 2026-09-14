@@ -1,7 +1,5 @@
 import Category from '../models/category.model';
 import Product from '../models/product.model';
-import Area from '../models/area.model';
-import Table from '../models/table.model';
 import User from '../models/user.model';
 import Settings from '../models/settings.model';
 import Customer from '../models/customer.model';
@@ -261,23 +259,6 @@ export const seedData = async (): Promise<void> => {
       for (const item of FULL_PRODUCTS) {
         await Product.findOneAndUpdate({ id: item.id }, item, { upsert: true, new: true });
       }
-    }
-
-    const areaCount = await Area.countDocuments();
-    if (areaCount === 0) {
-      console.log('[Seeder] Seeding initial areas & tables...');
-      await Area.insertMany([
-        { id: 'floor1', name: 'Tầng 1 - Máy Lạnh & Quầy Bar' },
-        { id: 'floor2', name: 'Tầng 2 - Không Gian Yên Tĩnh' },
-        { id: 'garden', name: 'Sân Vườn - Thơ Mộng Bồng Biêng' },
-      ]);
-
-      await Table.insertMany([
-        { id: 'T01', name: 'Bàn 01 (Cửa Sổ)', areaId: 'floor1', capacity: 2, status: 'occupied', currentOrderId: 'ORD-1001', occupiedAt: '2026-07-31 13:45' },
-        { id: 'T02', name: 'Bàn 02', areaId: 'floor1', capacity: 4, status: 'available' },
-        { id: 'T03', name: 'Bàn 03', areaId: 'floor1', capacity: 4, status: 'occupied', currentOrderId: 'ORD-1002', occupiedAt: '2026-07-31 14:10' },
-        { id: 'T04', name: 'Bàn Sofa VIP 1', areaId: 'floor1', capacity: 6, status: 'reserved' },
-      ]);
     }
 
     const userCount = await User.countDocuments();

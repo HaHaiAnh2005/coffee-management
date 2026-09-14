@@ -11,6 +11,7 @@ import {
   FiSettings,
   FiTrendingUp,
   FiShield,
+  FiBox,
 } from 'react-icons/fi';
 import { BsStars } from 'react-icons/bs';
 import { useCartStore } from '../../store/cart.store';
@@ -32,10 +33,10 @@ export const Sidebar: React.FC = () => {
 
   const allNavItems: NavItem[] = [
     { path: '/admin/dashboard', label: 'Dashboard Quản Trị', icon: FiBarChart2, permission: PERMISSIONS.REPORT_VIEW },
-    { path: '/admin/pos', label: 'Quầy Bán Hàng POS', icon: FiShoppingBag, badge: cartCount > 0 ? cartCount : null, permission: PERMISSIONS.ORDER_CREATE },
+    { path: '/admin/orders', label: 'Quản Lý Hóa Đơn', icon: FiFileText, permission: PERMISSIONS.BILL_PAY },
     { path: '/admin/products', label: 'Quản Lý Sản Phẩm', icon: FiCoffee, permission: PERMISSIONS.MENU_MANAGE },
     { path: '/admin/categories', label: 'Quản Lý Danh Mục', icon: FiGrid, permission: PERMISSIONS.MENU_MANAGE },
-    { path: '/admin/orders', label: 'Quản Lý Hóa Đơn', icon: FiFileText, permission: PERMISSIONS.BILL_PAY },
+    { path: '/admin/inventory', label: 'Quản Lý Nguyên Liệu', icon: FiBox, permission: PERMISSIONS.INVENTORY_MANAGE },
     { path: '/admin/employees', label: 'Quản Lý Nhân Viên', icon: FiUsers, permission: PERMISSIONS.EMPLOYEE_MANAGE },
     { path: '/admin/customers', label: 'Khách Hàng & Điểm', icon: FiUsers, permission: PERMISSIONS.ORDER_CREATE },
     { path: '/admin/coupons', label: 'Mã Giảm Giá', icon: FiGift, permission: PERMISSIONS.BILL_DISCOUNT_UNLIMITED },
