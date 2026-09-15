@@ -30,7 +30,6 @@ export const Inventory: React.FC = () => {
   // Tabs state
   const [activeTab, setActiveTab] = useState<'materials' | 'import_receipts' | 'export_receipts'>('materials');
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('ALL');
 
   // Modals state
   const [isAddMaterialModalOpen, setIsAddMaterialModalOpen] = useState(false);
@@ -42,10 +41,8 @@ export const Inventory: React.FC = () => {
   const [newMatName, setNewMatName] = useState('');
   const [newMatSku, setNewMatSku] = useState('');
   const [newMatUnit, setNewMatUnit] = useState('Kg');
-  const [newMatCategory, setNewMatCategory] = useState('Cà phê');
   const [newMatQty, setNewMatQty] = useState<number>(10);
   const [newMatPrice, setNewMatPrice] = useState<number>(150000);
-  const [newMatMinAlert, setNewMatMinAlert] = useState<number>(5);
   const [newMatSupplier, setNewMatSupplier] = useState('');
 
   // Form states: Create Receipt
@@ -67,14 +64,12 @@ export const Inventory: React.FC = () => {
     .reduce((sum, r) => sum + r.totalAmount, 0);
 
   // Filtered materials
-  const categories = ['ALL', ...Array.from(new Set(items.map((i) => i.category)))];
   const filteredMaterials = items.filter((item) => {
     const matchSearch =
       item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (item.sku && item.sku.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (item.supplier && item.supplier.toLowerCase().includes(searchQuery.toLowerCase()));
-    const matchCat = selectedCategory === 'ALL' || item.category === selectedCategory;
-    return matchSearch && matchCat;
+    return matchSearch;
   });
 
   // Filtered Receipts
@@ -191,8 +186,8 @@ export const Inventory: React.FC = () => {
       unit: newMatUnit.trim(),
       quantity: Number(newMatQty),
       unitPrice: Number(newMatPrice),
-      minAlertThreshold: Number(newMatMinAlert),
-      category: newMatCategory.trim(),
+      minAlertThreshold: 5,
+      category: 'Khác',
       supplier: newMatSupplier.trim() || 'Nhà Cung Cấp Mộc',
     });
 
@@ -349,23 +344,6 @@ export const Inventory: React.FC = () => {
         {/* TAB 1: Danh Sách Tồn Kho Nguyên Liệu */}
         {activeTab === 'materials' && (
           <div className="space-y-4">
-            {/* Category Filter Pills */}
-            <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-              {categories.map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => setSelectedCategory(cat)}
-                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
-                    selectedCategory === cat
-                      ? 'bg-sky-600 text-white shadow-xs'
-                      : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
-                  }`}
-                >
-                  {cat === 'ALL' ? 'Tất Cả Phân Loại' : cat}
-                </button>
-              ))}
-            </div>
-
             {/* Materials Table */}
             <div className="overflow-x-auto rounded-2xl border border-sky-100">
               <table className="w-full text-left border-collapse">
@@ -373,7 +351,6 @@ export const Inventory: React.FC = () => {
                   <tr className="bg-sky-50/70 text-stone-600 text-[11px] uppercase tracking-wider font-extrabold border-b border-sky-100">
                     <th className="p-3.5">Mã SKU</th>
                     <th className="p-3.5">Tên Nguyên Liệu</th>
-                    <th className="p-3.5">Phân Loại</th>
                     <th className="p-3.5">Số Lượng Tồn</th>
                     <th className="p-3.5">Đơn Giá Vốn</th>
                     <th className="p-3.5">Tổng Giá Trị</th>
@@ -385,7 +362,7 @@ export const Inventory: React.FC = () => {
                 <tbody className="divide-y divide-sky-50 text-xs text-stone-800">
                   {filteredMaterials.length === 0 ? (
                     <tr>
-                      <td colSpan={9} className="p-8 text-center text-stone-400 font-semibold">
+                      <td colSpan={8} className="p-8 text-center text-stone-400 font-semibold">
                         Không tìm thấy nguyên liệu nào phù hợp.
                       </td>
                     </tr>
@@ -399,11 +376,6 @@ export const Inventory: React.FC = () => {
                         <tr key={item.id} className="hover:bg-sky-50/40 transition-colors">
                           <td className="p-3.5 font-mono text-[11px] font-bold text-sky-800">{item.sku || item.id}</td>
                           <td className="p-3.5 font-extrabold text-stone-900">{item.name}</td>
-                          <td className="p-3.5">
-                            <span className="px-2 py-0.5 rounded-md bg-stone-100 text-stone-600 text-[10px] font-bold">
-                              {item.category}
-                            </span>
-                          </td>
                           <td className="p-3.5 font-black text-stone-900 text-sm">
                             {item.quantity} <span className="text-xs font-semibold text-stone-500">{item.unit}</span>
                           </td>
@@ -990,24 +962,7 @@ export const Inventory: React.FC = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-stone-700">Phân loại:</label>
-                <select
-                  value={newMatCategory}
-                  onChange={(e) => setNewMatCategory(e.target.value)}
-                  className="w-full bg-sky-50/50 border border-sky-200 rounded-xl px-3 py-2 text-xs text-stone-900 focus:outline-none focus:border-sky-500"
-                >
-                  <option value="Cà phê">Cà phê</option>
-                  <option value="Trà & Hoa">Trà & Hoa</option>
-                  <option value="Sữa & Kem">Sữa & Kem</option>
-                  <option value="Matcha & Bột">Matcha & Bột</option>
-                  <option value="Topping & Hạt">Topping & Hạt</option>
-                  <option value="Siro & Đường">Siro & Đường</option>
-                  <option value="Bao bì & Ly">Bao bì & Ly</option>
-                </select>
-              </div>
-
+              <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
                 <label className="text-xs font-bold text-stone-700">Đơn giá vốn ước tính:</label>
                 <input
@@ -1033,17 +988,6 @@ export const Inventory: React.FC = () => {
                 />
               </div>
 
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-stone-700">Ngưỡng cảnh báo hết:</label>
-                <input
-                  type="number"
-                  step="any"
-                  min="0"
-                  value={newMatMinAlert}
-                  onChange={(e) => setNewMatMinAlert(Number(e.target.value))}
-                  className="w-full bg-sky-50/50 border border-sky-200 rounded-xl px-3 py-2 text-xs text-stone-900 focus:outline-none focus:border-sky-500"
-                />
-              </div>
             </div>
 
             <div className="space-y-1">
