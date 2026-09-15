@@ -10,8 +10,6 @@ import { FiCheckCircle, FiDollarSign, FiUserCheck } from 'react-icons/fi';
 import { BsQrCode } from 'react-icons/bs';
 import axios from 'axios';
 
-const digitsOnly = (value: string) => value.replace(/\D/g, '');
-
 export const Checkout: React.FC = () => {
   const navigate = useNavigate();
   const { items, clearCart } = useCartStore();
@@ -22,7 +20,7 @@ export const Checkout: React.FC = () => {
     () => user?.name || localStorage.getItem('last_customer_name') || ''
   );
   const [phone, setPhone] = useState(
-    () => digitsOnly(user?.phone || localStorage.getItem('last_customer_phone') || '')
+    () => user?.phone || localStorage.getItem('last_customer_phone') || ''
   );
   const [address, setAddress] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<'vietqr' | 'momo' | 'vnpay' | 'cash'>('momo');
@@ -32,7 +30,7 @@ export const Checkout: React.FC = () => {
   // Auto-fill from logged-in user profile if available
   useEffect(() => {
     if (user?.name) setCustomerName(user.name);
-    if (user?.phone) setPhone(digitsOnly(user.phone));
+    if (user?.phone) setPhone(user.phone);
   }, [user]);
 
   const subtotal = calculateSubtotal(items);
@@ -48,15 +46,13 @@ export const Checkout: React.FC = () => {
 
   const handleSubmitOrder = async (e: React.FormEvent) => {
     e.preventDefault();
-    const normalizedPhone = digitsOnly(phone);
-    if (!customerName || !normalizedPhone || normalizedPhone !== phone) {
-      setPhone(normalizedPhone);
+    if (!customerName || !phone) {
       alert('Vui lòng nhập họ tên và số điện thoại nhận hàng!');
       return;
     }
 
     try {
-      localStorage.setItem('last_customer_phone', normalizedPhone);
+      localStorage.setItem('last_customer_phone', phone);
       localStorage.setItem('last_customer_name', customerName);
     } catch (e) {}
 
@@ -68,7 +64,7 @@ export const Checkout: React.FC = () => {
           paymentMethod,
           amount: total,
           customerName,
-          customerPhone: normalizedPhone,
+          customerPhone: phone,
           items,
           subtotal,
           discount: 0,
@@ -100,7 +96,7 @@ export const Checkout: React.FC = () => {
       status: 'completed',
       cashierName: 'Online System',
       customerName,
-      customerPhone: normalizedPhone,
+      customerPhone: phone,
     });
 
     setIsSuccess(true);
@@ -195,12 +191,10 @@ export const Checkout: React.FC = () => {
           <div className="space-y-1">
             <label className="text-xs text-stone-600 font-semibold">Số điện thoại liên hệ:</label>
             <input
-              type="tel"
+              type="text"
               required
-              inputMode="numeric"
-              pattern="[0-9]+"
               value={phone}
-              onChange={(e) => setPhone(digitsOnly(e.target.value))}
+              onChange={(e) => setPhone(e.target.value)}
               placeholder="0988..."
               className="w-full bg-amber-50/50 border border-amber-200 rounded-xl px-3.5 py-2 text-xs text-stone-900 focus:outline-none focus:border-amber-600"
             />
