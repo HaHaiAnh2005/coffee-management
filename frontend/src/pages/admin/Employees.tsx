@@ -68,6 +68,12 @@ export const Employees: React.FC = () => {
   };
 
   const handleDeleteEmployee = (id: string) => {
+    const employee = employees.find((emp) => emp.id === id);
+    if (employee?.status === 'active') {
+      window.alert('Không thể xóa nhân viên đang làm việc. Vui lòng chuyển trạng thái sang Tạm nghỉ trước.');
+      return;
+    }
+
     if (window.confirm('Bạn có chắc chắn muốn xóa nhân viên này khỏi hệ thống?')) {
       setEmployees(employees.filter((emp) => emp.id !== id));
     }
@@ -234,8 +240,13 @@ export const Employees: React.FC = () => {
                       </button>
                       <button
                         onClick={() => handleDeleteEmployee(emp.id)}
-                        className="p-2 rounded-lg bg-stone-100 hover:bg-rose-600 hover:text-white text-stone-500 transition-colors cursor-pointer"
-                        title="Xóa nhân viên"
+                        disabled={emp.status === 'active'}
+                        className={`p-2 rounded-lg transition-colors ${
+                          emp.status === 'active'
+                            ? 'bg-stone-100 text-stone-300 cursor-not-allowed'
+                            : 'bg-stone-100 hover:bg-rose-600 hover:text-white text-stone-500 cursor-pointer'
+                        }`}
+                        title={emp.status === 'active' ? 'Chuyển sang Tạm nghỉ trước khi xóa' : 'Xóa nhân viên'}
                       >
                         <FiTrash2 className="w-3.5 h-3.5" />
                       </button>

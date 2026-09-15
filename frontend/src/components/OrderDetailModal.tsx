@@ -8,9 +8,10 @@ import { BsStars } from 'react-icons/bs';
 interface OrderDetailModalProps {
   order: Order | null;
   onClose: () => void;
+  onStatusChange?: (orderId: string, status: Order['status']) => void;
 }
 
-export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, onClose }) => {
+export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, onClose, onStatusChange }) => {
   if (!order) return null;
 
   const { settings } = useSettingsStore();
@@ -96,7 +97,7 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, onClo
               {order.items.map((item) => (
                 <div key={item.cartItemId} className="space-y-0.5">
                   <div className="flex justify-between font-bold text-stone-900 text-xs">
-                    <span className="w-1/2 line-clamp-1">{item.product.name} ({item.size})</span>
+                    <span className="w-1/2 line-clamp-1">{item.productName || item.product?.name || 'Món chưa xác định'} ({item.size})</span>
                     <span className="w-1/6 text-center">{item.quantity}</span>
                     <span className="w-1/3 text-right">{formatVND(item.itemTotalPrice)}</span>
                   </div>
@@ -144,6 +145,15 @@ export const OrderDetailModal: React.FC<OrderDetailModalProps> = ({ order, onClo
 
         {/* Modal Footer - HIDE ON PRINT (no-print) */}
         <div className="no-print p-4 border-t border-sky-100 bg-white flex justify-end gap-3 shadow-xs">
+          {order.status === 'pending' && onStatusChange && (
+            <button
+              type="button"
+              onClick={() => onStatusChange(order.id, 'processing')}
+              className="px-5 py-2.5 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-950 text-xs font-bold transition-all cursor-pointer border border-amber-300"
+            >
+              Nhận đơn và pha chế
+            </button>
+          )}
           <button
             type="button"
             onClick={handlePrint}

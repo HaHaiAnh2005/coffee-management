@@ -10,9 +10,8 @@ export const Navbar: React.FC = () => {
   const { user, logout } = useAuthStore();
 
   const handleLogout = () => {
-    const isStaff = user?.role && user.role !== 'CUSTOMER';
     logout();
-    navigate(isStaff ? '/admin/login' : '/login');
+    navigate('/login');
   };
 
   const navItems = [

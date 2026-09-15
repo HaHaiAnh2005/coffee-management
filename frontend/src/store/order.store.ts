@@ -5,11 +5,11 @@ import { generateCode } from '../utils/generateCode';
 
 interface OrderStoreState {
   orders: Order[];
-  activeFilter: 'all' | 'completed' | 'cancelled';
-  activeOrderFilter: 'all' | 'completed' | 'cancelled';
+  activeFilter: 'all' | 'pending' | 'processing' | 'completed' | 'cancelled';
+  activeOrderFilter: 'all' | 'pending' | 'processing' | 'completed' | 'cancelled';
 
-  setActiveFilter: (filter: 'all' | 'completed' | 'cancelled') => void;
-  setActiveOrderFilter: (filter: 'all' | 'completed' | 'cancelled') => void;
+  setActiveFilter: (filter: 'all' | 'pending' | 'processing' | 'completed' | 'cancelled') => void;
+  setActiveOrderFilter: (filter: 'all' | 'pending' | 'processing' | 'completed' | 'cancelled') => void;
   createOrder: (orderData: Omit<Order, 'id' | 'code' | 'createdAt'>) => Order;
   updateOrderStatus: (orderId: string, status: OrderStatus) => void;
   getOrderById: (orderId: string) => Order | undefined;
@@ -81,8 +81,13 @@ export const useOrderStore = create<OrderStoreState>()(
       setActiveOrderFilter: (filter) => set({ activeFilter: filter, activeOrderFilter: filter }),
 
       createOrder: (orderData) => {
+        const orderItems = orderData.items.map((item) => ({
+          ...item,
+          productName: item.productName || item.product.name,
+        }));
         const newOrder: Order = {
           ...orderData,
+          items: orderItems,
           id: `ORD-${Date.now().toString().slice(-4)}`,
           code: generateCode('ORD'),
           createdAt: new Date().toISOString(),
@@ -138,7 +143,7 @@ export const useOrderStore = create<OrderStoreState>()(
         try {
           const res = await fetch('/api/orders');
           const json = await res.json();
-          if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+          if (json.success && Array.isArray(json.data)) {
             set({ orders: json.data });
           }
         } catch (err) {}

@@ -10,6 +10,7 @@ export interface SelectedOption {
 
 export interface CartItem {
   cartItemId: string;
+  productName?: string;
   product: Product;
   quantity: number;
   size: 'S' | 'M' | 'L';
@@ -22,7 +23,7 @@ export interface CartItem {
 }
 
 export type PaymentMethod = 'cash' | 'vietqr' | 'card' | 'momo' | 'vnpay';
-export type OrderStatus = 'pending' | 'completed' | 'cancelled';
+export type OrderStatus = 'pending' | 'processing' | 'completed' | 'cancelled';
 
 export interface Order {
   id: string;
