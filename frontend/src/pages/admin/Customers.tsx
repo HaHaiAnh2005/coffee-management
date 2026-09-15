@@ -22,81 +22,31 @@ import {
   FiInfo,
 } from 'react-icons/fi';
 
-const CUSTOMER_SYNC_EVENT = 'coffee_customer_store_updated';
-
-const normalizeCustomerFromSync = (customer: Partial<Customer>): Customer => ({
-  id: customer.id || `CUS-${Date.now().toString().slice(-4)}`,
-  name: customer.name || 'Khách hàng',
-  phone: customer.phone || '',
-  email: customer.email || '',
-  rewardPoints: customer.rewardPoints || 0,
-  totalSpent: customer.totalSpent || 0,
-  tier: customer.tier || 'Bạc',
-  createdAt: customer.createdAt || new Date().toISOString().split('T')[0],
-  notes: customer.notes || '',
-});
+const STORAGE_KEY = 'coffee_admin_customers_data';
 
 export const Customers: React.FC = () => {
-  const [customers, setCustomers] = useState<Customer[]>([]);
-
-  const refreshCustomers = async () => {
-    const liveData = await customerApi.getAll();
-    if (Array.isArray(liveData) && liveData.length > 0) {
-      setCustomers(liveData);
+  // Load initial state from LocalStorage if available
+  const [customers, setCustomers] = useState<Customer[]>(() => {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error('Failed to parse customers from localStorage', e);
+      }
     }
-  };
+    return INITIAL_CUSTOMERS;
+  });
 
   // Fetch live customers from MongoDB API on load
   useEffect(() => {
-    refreshCustomers();
-  }, []);
-
-  useEffect(() => {
-    const handleCustomerSync = (event: Event) => {
-      const detail = (event as CustomEvent<{ customer?: Partial<Customer> }>).detail;
-      const syncedCustomer = detail?.customer;
-      if (!syncedCustomer) return;
-
-      setCustomers((prev) => {
-        const normalized = normalizeCustomerFromSync(syncedCustomer);
-        const exists = prev.some(
-          (customer) =>
-            customer.id === normalized.id ||
-            customer.phone === normalized.phone ||
-            customer.email.toLowerCase() === normalized.email.toLowerCase()
-        );
-
-        if (exists) {
-          return prev.map((customer) =>
-            customer.id === normalized.id || customer.phone === normalized.phone || customer.email === normalized.email
-              ? {
-                  ...customer,
-                  ...normalized,
-                }
-              : customer
-          );
-        }
-
-        return [normalized, ...prev];
-      });
+    const fetchLiveCustomers = async () => {
+      const liveData = await customerApi.getAll();
+      if (Array.isArray(liveData) && liveData.length > 0) {
+        setCustomers(liveData);
+      }
     };
-
-    const handleStorageSync = () => {
-      refreshCustomers();
-    };
-
-    const intervalId = window.setInterval(() => {
-      refreshCustomers();
-    }, 10000);
-
-    window.addEventListener(CUSTOMER_SYNC_EVENT, handleCustomerSync as EventListener);
-    window.addEventListener('storage', handleStorageSync);
-
-    return () => {
-      window.clearInterval(intervalId);
-      window.removeEventListener(CUSTOMER_SYNC_EVENT, handleCustomerSync as EventListener);
-      window.removeEventListener('storage', handleStorageSync);
-    };
+    fetchLiveCustomers();
   }, []);
 
   // Filter & Search & Sort states
@@ -117,6 +67,11 @@ export const Customers: React.FC = () => {
   // Toast Feedback State
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
+  // Save to LocalStorage whenever customers array updates
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(customers));
+  }, [customers]);
+
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => {
@@ -135,6 +90,22 @@ export const Customers: React.FC = () => {
     totalSpent: 0,
     notes: '',
   });
+
+  // Handle Open Add Customer Modal
+  const handleOpenAddModal = () => {
+    setEditingCustomer(null);
+    setFormData({
+      code: `CUS-${Date.now().toString().slice(-4)}`,
+      name: '',
+      phone: '',
+      email: '',
+      tier: 'Bạc',
+      rewardPoints: 0,
+      totalSpent: 0,
+      notes: '',
+    });
+    setIsCustomerModalOpen(true);
+  };
 
   // Handle Open Edit Customer Modal
   const handleOpenEditModal = (cus: Customer) => {
@@ -161,36 +132,56 @@ export const Customers: React.FC = () => {
     }
   };
 
-  // Save Customer (Update only)
+  // Save Customer (Create or Update)
   const handleSaveCustomer = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editingCustomer || !formData.name.trim() || !formData.phone.trim()) {
+    if (!formData.name.trim() || !formData.phone.trim()) {
       alert('Vui lòng nhập đầy đủ Họ tên và Số điện thoại!');
       return;
     }
 
-    const autoTier = calculateCustomerTier(formData.totalSpent);
-    const updatedData: Partial<Customer> = {
-      name: formData.name.trim(),
-      phone: formData.phone.trim(),
-      email: formData.email.trim(),
-      tier: formData.tier || autoTier,
-      rewardPoints: Number(formData.rewardPoints) || 0,
-      totalSpent: Number(formData.totalSpent) || 0,
-      notes: formData.notes.trim(),
-    };
+    if (editingCustomer) {
+      // Update
+      const autoTier = calculateCustomerTier(formData.totalSpent);
+      const updatedData: Partial<Customer> = {
+        name: formData.name.trim(),
+        phone: formData.phone.trim(),
+        email: formData.email.trim(),
+        tier: formData.tier || autoTier,
+        rewardPoints: Number(formData.rewardPoints) || 0,
+        totalSpent: Number(formData.totalSpent) || 0,
+        notes: formData.notes.trim(),
+      };
+      const updatedList = customers.map((c) =>
+        c.id === editingCustomer.id
+          ? {
+              ...c,
+              ...updatedData,
+            }
+          : c
+      );
+      setCustomers(updatedList);
+      await customerApi.update(editingCustomer.id, updatedData);
+      showToast(`Đã cập nhật thông tin khách hàng ${formData.name}`);
+    } else {
+      // Create new
+      const autoTier = calculateCustomerTier(Number(formData.totalSpent) || 0);
+      const newCustomer: Customer = {
+        id: formData.code.trim() || `CUS-${Date.now().toString().slice(-4)}`,
+        name: formData.name.trim(),
+        phone: formData.phone.trim(),
+        email: formData.email.trim(),
+        rewardPoints: Number(formData.rewardPoints) || 0,
+        totalSpent: Number(formData.totalSpent) || 0,
+        tier: formData.tier || autoTier,
+        createdAt: new Date().toISOString().split('T')[0],
+        notes: formData.notes.trim(),
+      };
+      setCustomers([...customers, newCustomer]);
+      await customerApi.create(newCustomer);
+      showToast(`Đã thêm mới khách hàng ${formData.name}`);
+    }
 
-    const updatedList = customers.map((c) =>
-      c.id === editingCustomer.id
-        ? {
-            ...c,
-            ...updatedData,
-          }
-        : c
-    );
-    setCustomers(updatedList);
-    await customerApi.update(editingCustomer.id, updatedData);
-    showToast(`Đã cập nhật thông tin khách hàng ${formData.name}`);
     setIsCustomerModalOpen(false);
   };
 
@@ -304,6 +295,12 @@ export const Customers: React.FC = () => {
           </p>
         </div>
 
+        <button
+          onClick={handleOpenAddModal}
+          className="px-4 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-extrabold text-xs flex items-center gap-2 shadow-lg shadow-sky-600/10 transition-all cursor-pointer hover:scale-105 active:scale-95"
+        >
+          <FiUserPlus className="w-4 h-4 stroke-[2.5]" /> Thêm Khách Hàng Mới
+        </button>
       </div>
 
       {/* KPI Stats Summary Cards */}
@@ -554,16 +551,19 @@ export const Customers: React.FC = () => {
         </div>
       </div>
 
-      {/* Edit Customer Modal */}
-      {isCustomerModalOpen && editingCustomer && (
+      {/* Add / Edit Customer Modal */}
+      {isCustomerModalOpen && (
         <div className="fixed inset-0 z-50 bg-stone-900/40 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white border border-stone-200 rounded-3xl w-full max-w-md overflow-hidden shadow-2xl text-stone-900 animate-in fade-in zoom-in-95">
+            {/* Modal Header */}
             <div className="p-5 border-b border-sky-100 flex items-center justify-between bg-sky-50/50">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-lg bg-sky-100 text-sky-700 flex items-center justify-center font-bold">
-                  <FiEdit2 className="w-4 h-4" />
+                  <FiUserPlus className="w-4 h-4" />
                 </div>
-                <h2 className="font-extrabold text-stone-900 text-base">Sửa Thông Tin Khách Hàng</h2>
+                <h2 className="font-extrabold text-stone-900 text-base">
+                  {editingCustomer ? 'Sửa Thông Tin Khách Hàng' : 'Thêm Khách Hàng Mới'}
+                </h2>
               </div>
               <button
                 onClick={() => setIsCustomerModalOpen(false)}
@@ -573,9 +573,23 @@ export const Customers: React.FC = () => {
               </button>
             </div>
 
+            {/* Modal Form */}
             <form onSubmit={handleSaveCustomer} className="p-5 space-y-4 text-xs">
               <div>
-                <label className="block text-stone-600 font-bold mb-1">Họ và tên <span className="text-rose-500">*</span></label>
+                <label className="block text-stone-600 font-bold mb-1">Mã Khách Hàng</label>
+                <input
+                  type="text"
+                  value={formData.code}
+                  onChange={(e) => setFormData({ ...formData, code: e.target.value })}
+                  placeholder="VD: CUS-006"
+                  className="w-full bg-sky-50/40 border border-sky-200 rounded-xl px-3.5 py-2.5 text-stone-900 focus:outline-none focus:border-sky-500 font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="block text-stone-600 font-bold mb-1">
+                  Họ và tên <span className="text-rose-500">*</span>
+                </label>
                 <input
                   type="text"
                   required
@@ -588,7 +602,9 @@ export const Customers: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-stone-600 font-bold mb-1">Số điện thoại <span className="text-rose-500">*</span></label>
+                  <label className="block text-stone-600 font-bold mb-1">
+                    Số điện thoại <span className="text-rose-500">*</span>
+                  </label>
                   <input
                     type="tel"
                     required
@@ -658,6 +674,7 @@ export const Customers: React.FC = () => {
                 />
               </div>
 
+              {/* Modal Buttons */}
               <div className="pt-3 flex items-center justify-end gap-2 border-t border-sky-100">
                 <button
                   type="button"
@@ -670,7 +687,7 @@ export const Customers: React.FC = () => {
                   type="submit"
                   className="px-5 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-black cursor-pointer shadow-md transition-all"
                 >
-                  Cập Nhật
+                  {editingCustomer ? 'Cập Nhật' : 'Tạo Khách Hàng'}
                 </button>
               </div>
             </form>

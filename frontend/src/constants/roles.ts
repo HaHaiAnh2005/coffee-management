@@ -8,10 +8,10 @@ export const ROLES = {
 } as const;
 
 export const ROLE_LABELS: Record<string, string> = {
-  ADMIN: 'Quản lý',
-  MANAGER: 'Quản lý',
-  CASHIER: 'Nhân viên',
-  WAITER: 'Nhân viên',
-  BARISTA: 'Nhân viên',
+  ADMIN: 'Chủ quán (Admin)',
+  MANAGER: 'Quản lý cửa hàng',
+  CASHIER: 'Thu ngân',
+  WAITER: 'Phục vụ bàn',
+  BARISTA: 'Pha chế / Bếp',
   CUSTOMER: 'Khách hàng',
 };

@@ -7,12 +7,12 @@ export const Footer: React.FC = () => {
       <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-stone-800">
         <p>© 2026 88 BỒNG BIÊNG - Trà Hương Hoa Ủ Nhiệt Thấu Đêm & Cà Phê Mộc. All rights reserved.</p>
 
-        {/* Shared login for customers, employees, and management */}
+        {/* Subtle, discrete link for internal staff login */}
         <Link
-          to="/login"
+          to="/admin/login"
           className="text-[11px] text-stone-600 hover:text-stone-950 hover:underline transition-opacity opacity-50 hover:opacity-100 font-mono"
         >
-          Đăng nhập hệ thống
+          Quản trị nội bộ
         </Link>
       </div>
     </footer>

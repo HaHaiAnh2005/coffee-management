@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useOrderStore } from '../stores/useOrderStore';
 import { OrderDetailModal } from '../components/OrderDetailModal';
 import type { Order } from '../types';
@@ -6,14 +6,8 @@ import { formatVND, formatDate } from '../utils/formatters';
 import { FiFileText, FiEye } from 'react-icons/fi';
 
 export const OrdersPage: React.FC = () => {
-  const { orders, activeOrderFilter, setActiveOrderFilter, syncFromApi, updateOrderStatus } = useOrderStore();
+  const { orders, activeOrderFilter, setActiveOrderFilter } = useOrderStore();
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-
-  useEffect(() => {
-    syncFromApi();
-    const refreshTimer = window.setInterval(syncFromApi, 5000);
-    return () => window.clearInterval(refreshTimer);
-  }, [syncFromApi]);
 
   const filteredOrders = orders.filter((o) => {
     if (activeOrderFilter === 'all') return true;
@@ -35,7 +29,7 @@ export const OrdersPage: React.FC = () => {
 
         {/* Filter Pills */}
         <div className="flex items-center gap-2 bg-sky-50/80 border border-sky-200/80 p-1.5 rounded-2xl shadow-xs">
-          {(['all', 'pending', 'processing', 'completed', 'cancelled'] as const).map((filter) => (
+          {(['all', 'completed', 'cancelled'] as const).map((filter) => (
             <button
               key={filter}
               onClick={() => setActiveOrderFilter(filter)}
@@ -45,7 +39,7 @@ export const OrdersPage: React.FC = () => {
                   : 'text-stone-600 hover:text-sky-950'
               }`}
             >
-              {filter === 'all' ? 'Tất Cả' : filter === 'pending' ? 'Chờ nhận món' : filter === 'processing' ? 'Đang pha chế' : filter === 'completed' ? 'Hoàn Thành' : 'Đã Hủy'}
+              {filter === 'all' ? 'Tất Cả' : filter === 'completed' ? 'Hoàn Thành' : 'Đã Hủy'}
             </button>
           ))}
         </div>
@@ -80,7 +74,7 @@ export const OrdersPage: React.FC = () => {
                     {o.isTakeaway ? '🥤 Mang Về' : `🪑 ${o.tableName}`}
                   </td>
                   <td className="p-4 text-stone-600">
-                    {o.items.map((i) => `${i.productName || i.product?.name || 'Món chưa xác định'} (x${i.quantity})`).join(', ')}
+                    {o.items.map((i) => `${i.product.name} (x${i.quantity})`).join(', ')}
                   </td>
                   <td className="p-4 uppercase font-semibold text-stone-600">{o.paymentMethod}</td>
                   <td className="p-4 font-extrabold text-sky-800 text-sm">{formatVND(o.total)}</td>
@@ -101,11 +95,7 @@ export const OrdersPage: React.FC = () => {
       </div>
 
       {/* Order Detail Ticket Modal */}
-      <OrderDetailModal
-        order={selectedOrder}
-        onClose={() => setSelectedOrder(null)}
-        onStatusChange={updateOrderStatus}
-      />
+      <OrderDetailModal order={selectedOrder} onClose={() => setSelectedOrder(null)} />
     </div>
   );
 };
