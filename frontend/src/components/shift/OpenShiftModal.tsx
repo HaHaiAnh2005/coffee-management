@@ -1,3 +1,4 @@
+import { NumericInput } from '../common/NumericInput';
 import React, { useState } from 'react';
 import { FiClock, FiDollarSign, FiCheckCircle } from 'react-icons/fi';
 import { Modal } from '../common/Modal';
@@ -18,6 +19,7 @@ export const OpenShiftModal: React.FC<OpenShiftModalProps> = ({ isOpen, onClose 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!Number.isFinite(initialCash) || initialCash < 0 || initialCash > Number.MAX_SAFE_INTEGER) { alert('Tiền đầu ca không hợp lệ'); return; }
     const cashierName = user?.name || 'Nguyễn Văn Thu Ngân';
     const cashierId = user?.id || 'EMP03';
 
@@ -56,7 +58,7 @@ export const OpenShiftModal: React.FC<OpenShiftModalProps> = ({ isOpen, onClose 
             <FiDollarSign className="text-emerald-600" /> Số tiền mặt đầu ca (Tiền thối):
           </label>
           <div className="relative">
-            <input
+            <NumericInput
               type="number"
               step="10000"
               value={initialCash}

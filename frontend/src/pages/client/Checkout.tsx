@@ -1,14 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import { ValidatedInput } from '../../components/common/ValidatedInput';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { orderQuantityError, personNameError } from '../../../../shared/validation';
 import { useNavigate } from 'react-router-dom';
 import { useCartStore } from '../../store/cart.store';
 import { useOrderStore } from '../../store/order.store';
 import { useAuthStore } from '../../store/auth.store';
 import { formatCurrency } from '../../utils/formatCurrency';
-import { generateVietQRUrl } from '../../utils/helpers';
 import { calculateSubtotal } from '../../utils/calculateTotal';
-import { FiCheckCircle, FiDollarSign, FiUserCheck } from 'react-icons/fi';
+import { FiCheckCircle, FiDollarSign, FiUserCheck, FiAlertCircle } from 'react-icons/fi';
 import { BsQrCode } from 'react-icons/bs';
 import axios from 'axios';
+import { SePayPayment } from '../../components/SePayPayment';
+import { readPendingSePay, SEPAY_PENDING_KEY, SEPAY_REQUEST_KEY } from '../../utils/sepay';
 
 export const Checkout: React.FC = () => {
   const navigate = useNavigate();
@@ -22,39 +25,125 @@ export const Checkout: React.FC = () => {
   const [phone, setPhone] = useState(
     () => user?.phone || localStorage.getItem('last_customer_phone') || ''
   );
+  const [phoneError, setPhoneError] = useState<string>('');
   const [address, setAddress] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<'vietqr' | 'momo' | 'vnpay' | 'cash'>('momo');
   const [isProcessingGateway, setIsProcessingGateway] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [pendingSePay, setPendingSePay] = useState(readPendingSePay);
+  const [creatingSePay, setCreatingSePay] = useState(false);
+  const sepayBusy = useRef(false);
+
+  const completeSePay = useCallback(() => {
+    clearCart();
+    sessionStorage.removeItem(SEPAY_PENDING_KEY);
+    sessionStorage.removeItem(SEPAY_REQUEST_KEY);
+    setPendingSePay(null);
+    setPaymentMethod('vietqr');
+    setIsSuccess(true);
+  }, [clearCart]);
+
+  const handleCancelSePay = useCallback(() => {
+    sessionStorage.removeItem(SEPAY_PENDING_KEY);
+    sessionStorage.removeItem(SEPAY_REQUEST_KEY);
+    setPendingSePay(null);
+  }, []);
 
   // Auto-fill from logged-in user profile if available
   useEffect(() => {
     if (user?.name) setCustomerName(user.name);
-    if (user?.phone) setPhone(user.phone);
+    if (user?.phone) {
+      setPhone(user.phone);
+      if (/[^\d]/.test(user.phone)) {
+        setPhoneError('Số điện thoại chỉ được phép điền số, không được chứa chữ cái hoặc ký tự đặc biệt!');
+      }
+    }
   }, [user]);
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setPhone(val);
+
+    if (!val.trim()) {
+      setPhoneError('');
+      return;
+    }
+
+    if (/[^\d]/.test(val)) {
+      setPhoneError('Số điện thoại chỉ được phép điền số, không được chứa chữ cái hoặc ký tự đặc biệt!');
+    } else if (val.length > 11) {
+      setPhoneError('Số điện thoại chỉ tối đa 11 số!');
+    } else if (val.length < 10) {
+      setPhoneError('Số điện thoại phải có ít nhất 10 số!');
+    } else {
+      setPhoneError('');
+    }
+  };
 
   const subtotal = calculateSubtotal(items);
   const total = subtotal;
 
-  const qrUrl = generateVietQRUrl('TPBank', '07755056866', 'HA HAI ANH', total, 'BONG BIENG ONLINE CHECKOUT');
 
   // Generated MoMo QR link simulation
   const momoQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=2|99|0988888888|QUAN%20CA%20PHE%2088%20BONG%20BIENG|checkouts@momo|0|0|${total}|Thanh%20toan%20don%20hang%20Bong%20Bieng`;
-  
+
   // Generated VNPAY QR link simulation
   const vnpayQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=00020101021238570010A0000007270127000697042201130988888888520458125303704540${total}5802VN5921BONG%20BIENG%20VNPAY6007HA%20NOI62190815BONGBIENG1001`;
 
   const handleSubmitOrder = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!customerName || !phone) {
-      alert('Vui lòng nhập họ tên và số điện thoại nhận hàng!');
+    const validation = orderQuantityError(items) || personNameError(customerName);
+    if (validation) { alert(validation); return; }
+    if (sepayBusy.current) return;
+    if (!customerName.trim()) {
+      alert('Vui lòng nhập họ tên người nhận hàng!');
+      return;
+    }
+
+    if (!phone.trim()) {
+      setPhoneError('Vui lòng nhập số điện thoại nhận hàng!');
+      alert('Vui lòng nhập số điện thoại nhận hàng!');
+      return;
+    }
+
+    if (/[^\d]/.test(phone.trim())) {
+      setPhoneError('Số điện thoại chỉ được phép điền số, không được chứa chữ cái hoặc ký tự đặc biệt!');
+      alert('Số điện thoại chỉ được phép điền số, không được chứa chữ cái!');
+      return;
+    }
+
+    if (phone.trim().length < 10 || phone.trim().length > 11) {
+      setPhoneError('Số điện thoại không hợp lệ (phải từ 10 đến 11 số)!');
+      alert('Số điện thoại không hợp lệ! Vui lòng nhập từ 10 đến 11 số.');
       return;
     }
 
     try {
-      localStorage.setItem('last_customer_phone', phone);
-      localStorage.setItem('last_customer_name', customerName);
+      localStorage.setItem('last_customer_phone', phone.trim());
+      localStorage.setItem('last_customer_name', customerName.trim());
     } catch (e) {}
+
+    if (paymentMethod === 'vietqr') {
+      sepayBusy.current = true;
+      setCreatingSePay(true);
+      try {
+        let id = sessionStorage.getItem(SEPAY_REQUEST_KEY);
+        if (!id) {
+          id = `SEPAY-${crypto.randomUUID()}`;
+          sessionStorage.setItem(SEPAY_REQUEST_KEY, id);
+        }
+        const { data } = await axios.post('/api/payment/sepay-orders', {
+          id, items, subtotal, total, customerName: customerName.trim(), customerPhone: phone.trim(),
+        }, { timeout: 15000 });
+        if (!data.success || !data.data?.paymentReference) throw new Error('Không tạo được đơn VietQR');
+        sessionStorage.setItem(SEPAY_PENDING_KEY, JSON.stringify(data.data));
+        setPendingSePay(data.data);
+        useOrderStore.setState((state) => ({ orders: [data.data, ...state.orders.filter((order) => order.id !== data.data.id)] }));
+      } catch (error) {
+        alert(axios.isAxiosError(error) ? error.response?.data?.message || 'Không tạo được đơn. Vui lòng thử lại.' : 'Không tạo được đơn. Vui lòng thử lại.');
+      } finally { sepayBusy.current = false; setCreatingSePay(false); }
+      return;
+    }
 
     // Thanh toán qua Cổng VNPay hoặc MoMo
     if (paymentMethod === 'momo' || paymentMethod === 'vnpay') {
@@ -179,7 +268,7 @@ export const Checkout: React.FC = () => {
 
           <div className="space-y-1">
             <label className="text-xs text-stone-600 font-semibold">Họ và tên người nhận:</label>
-            <input
+            <ValidatedInput kind="person"
               type="text"
               required
               value={customerName}
@@ -189,15 +278,29 @@ export const Checkout: React.FC = () => {
             />
           </div>
           <div className="space-y-1">
-            <label className="text-xs text-stone-600 font-semibold">Số điện thoại liên hệ:</label>
-            <input
+            <div className="flex items-center justify-between">
+              <label className="text-xs text-stone-600 font-semibold">Số điện thoại liên hệ:</label>
+              <span className="text-[10px] text-stone-400">Chỉ điền số</span>
+            </div>
+            <ValidatedInput kind="phone"
               type="text"
+              inputMode="numeric"
               required
               value={phone}
-              onChange={(e) => setPhone(e.target.value)}
+              onChange={handlePhoneChange}
               placeholder="0988..."
-              className="w-full bg-amber-50/50 border border-amber-200 rounded-xl px-3.5 py-2 text-xs text-stone-900 focus:outline-none focus:border-amber-600"
+              className={`w-full rounded-xl px-3.5 py-2 text-xs text-stone-900 focus:outline-none transition-all ${
+                phoneError
+                  ? 'bg-red-50/60 border-2 border-red-500 focus:border-red-600'
+                  : 'bg-amber-50/50 border border-amber-200 focus:border-amber-600'
+              }`}
             />
+            {phoneError && (
+              <p className="text-[11px] text-red-600 font-medium flex items-center gap-1 mt-1">
+                <FiAlertCircle className="w-3.5 h-3.5 shrink-0 text-red-500" />
+                <span>{phoneError}</span>
+              </p>
+            )}
           </div>
           <div className="space-y-1">
             <label className="text-xs text-stone-600 font-semibold">Địa chỉ giao tận nơi:</label>
@@ -318,12 +421,13 @@ export const Checkout: React.FC = () => {
           )}
 
           {paymentMethod === 'vietqr' && (
-            <div className="p-4 bg-amber-50/60 border border-amber-200 rounded-2xl text-center space-y-2">
+            <div className="p-4 bg-amber-50/60 border border-amber-200 rounded-2xl text-center space-y-1">
               <p className="text-xs font-bold text-amber-900">
-                🏦 Mã VietQR Ngân Hàng TPBank: <strong className="text-stone-900">HA HAI ANH (0775 5056 866)</strong>
+                Thanh toán chuyển khoản VietQR tự động qua SePay
               </p>
-              <img src={qrUrl} alt="VietQR TPBank" className="w-44 h-44 mx-auto rounded-xl bg-white p-2 border border-amber-200 shadow-sm" />
-              <p className="text-[11px] text-stone-600">Mã QR tự động nhập đúng số tiền <strong>{formatCurrency(total)}</strong> và nội dung chuyển khoản</p>
+              <p className="text-[11px] text-stone-600">
+                Bấm &quot;Xác Nhận Đơn &amp; Chuyển Khoản&quot; bên dưới để mở mã QR có đúng số tiền và mã đơn. Bạn có thể quét mã và bấm &quot;Kiểm tra và hoàn thành&quot;.
+              </p>
             </div>
           )}
 
@@ -334,16 +438,26 @@ export const Checkout: React.FC = () => {
             </div>
             <button
               type="submit"
+              disabled={creatingSePay}
               className="w-full py-3.5 rounded-2xl bg-amber-700 hover:bg-amber-800 text-white font-extrabold text-xs shadow-md transition-all cursor-pointer hover:scale-[1.01]"
             >
               {paymentMethod === 'momo' && 'Xác Nhận & Thanh Toán Qua MoMo 💖'}
               {paymentMethod === 'vnpay' && 'Xác Nhận & Thanh Toán Qua VNPAY 💙'}
-              {paymentMethod === 'vietqr' && 'Xác Nhận Đơn & Chuyển Khoản 🏦'}
+              {paymentMethod === 'vietqr' && (creatingSePay ? 'Đang tạo đơn & mã VietQR...' : 'Xác Nhận Đơn & Chuyển Khoản 🏦')}
               {paymentMethod === 'cash' && 'Xác Nhận Đặt Hàng (Tiền Mặt) 💵'}
             </button>
           </div>
         </div>
       </form>
+
+      {/* SePay VietQR Modal Popup */}
+      {pendingSePay && (
+        <SePayPayment
+          initialOrder={pendingSePay}
+          onComplete={completeSePay}
+          onCancel={handleCancelSePay}
+        />
+      )}
     </div>
   );
 };

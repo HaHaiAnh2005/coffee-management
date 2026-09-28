@@ -10,6 +10,9 @@
     "start": "cross-env NODE_ENV=production tsx backend/server.ts",
     "build": "tsc -b && vite build frontend",
     "lint": "eslint .",
+    "test": "tsx --test tests/*.test.ts",
+    "test:validation": "tsx --test tests/numeric-validation.test.ts",
+    "test:sepay": "tsx --test tests/sepay.test.ts",
     "preview": "vite preview frontend"
   },
   "dependencies": {

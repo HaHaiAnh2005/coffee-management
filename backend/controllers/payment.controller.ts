@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import Order from '../models/order.model';
 import { createVNPayUrl, verifyVNPayCallback } from '../services/vnpay.service';
 import { createMoMoPaymentUrl, verifyMoMoSignature } from '../services/momo.service';
+import { orderQuantityError, nonnegativeNumber } from '../../shared/validation';
 
 export const createPaymentUrl = async (req: Request, res: Response) => {
   try {
@@ -18,6 +19,11 @@ export const createPaymentUrl = async (req: Request, res: Response) => {
       tableName,
     } = req.body;
 
+    const itemError = orderQuantityError(items);
+    if (itemError || !nonnegativeNumber(amount) || amount <= 0 || !['momo', 'vnpay'].includes(paymentMethod)) {
+      res.status(400).json({ success: false, message: itemError || 'Phương thức hoặc số tiền thanh toán không hợp lệ' });
+      return;
+    }
     if (!paymentMethod || !amount) {
       res.status(400).json({ success: false, message: 'Thiếu phương thức hoặc số tiền thanh toán' });
       return;
@@ -85,7 +91,7 @@ export const verifyPaymentStatus = async (req: Request, res: Response) => {
       const result = verifyVNPayCallback(req.query);
       if (result.isValidSignature && result.isSuccess) {
         const order = await Order.findOneAndUpdate(
-          { id: result.orderId },
+          { id: result.orderId, paymentMethod: 'vnpay' },
           { status: 'completed', completedAt: new Date().toISOString() },
           { new: true }
         );
@@ -106,7 +112,7 @@ export const verifyPaymentStatus = async (req: Request, res: Response) => {
       const isSuccess = Number(resultCode) === 0;
       if (isSuccess && momoOrderId) {
         const order = await Order.findOneAndUpdate(
-          { id: momoOrderId },
+          { id: momoOrderId, paymentMethod: 'momo' },
           { status: 'completed', completedAt: new Date().toISOString() },
           { new: true }
         );
@@ -120,7 +126,7 @@ export const verifyPaymentStatus = async (req: Request, res: Response) => {
     // Fallback: Tìm theo orderId nếu có
     if (orderId) {
       const order = await Order.findOne({ id: orderId as string });
-      res.status(200).json({ success: true, isSuccess: order?.status === 'completed', order });
+      res.status(200).json({ success: true, isSuccess: order?.status === 'completed' && (!order.paymentReference || !!order.sepayTransactionId), order });
       return;
     }
 
@@ -139,7 +145,7 @@ export const vnpayIPN = async (req: Request, res: Response) => {
       return;
     }
 
-    const order = await Order.findOne({ id: result.orderId });
+    const order = await Order.findOne({ id: result.orderId, paymentMethod: 'vnpay' });
     if (!order) {
       res.status(200).json({ RspCode: '01', Message: 'Order not found' });
       return;
@@ -176,7 +182,7 @@ export const momoIPN = async (req: Request, res: Response) => {
       return;
     }
 
-    const order = await Order.findOne({ id: result.orderId });
+    const order = await Order.findOne({ id: result.orderId, paymentMethod: 'momo' });
     if (order) {
       if (result.isSuccess) {
         order.status = 'completed';

@@ -1,3 +1,6 @@
+import { ValidatedInput } from '../../components/common/ValidatedInput';
+import { NumericInput } from '../../components/common/NumericInput';
+import { CustomerActivationButton } from '../../components/CustomerActivationButton';
 import React, { useState, useEffect } from 'react';
 import { INITIAL_CUSTOMERS, calculateCustomerTier, customerApi } from '../../api/customer.api';
 import type { Customer, CustomerTier } from '../../types/customer';
@@ -20,6 +23,7 @@ import {
   FiPhone,
   FiMail,
   FiInfo,
+  FiAlertCircle,
 } from 'react-icons/fi';
 
 const STORAGE_KEY = 'coffee_admin_customers_data';
@@ -90,10 +94,32 @@ export const Customers: React.FC = () => {
     totalSpent: 0,
     notes: '',
   });
+  const [phoneError, setPhoneError] = useState<string>('');
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setFormData((prev) => ({ ...prev, phone: val }));
+
+    if (!val.trim()) {
+      setPhoneError('');
+      return;
+    }
+
+    if (/[^\d]/.test(val)) {
+      setPhoneError('Số điện thoại chỉ được phép điền số, không được chứa chữ cái hoặc ký tự đặc biệt!');
+    } else if (val.length > 11) {
+      setPhoneError('Số điện thoại chỉ tối đa 11 số!');
+    } else if (val.length < 10) {
+      setPhoneError('Số điện thoại phải có ít nhất 10 số!');
+    } else {
+      setPhoneError('');
+    }
+  };
 
   // Handle Open Add Customer Modal
   const handleOpenAddModal = () => {
     setEditingCustomer(null);
+    setPhoneError('');
     setFormData({
       code: `CUS-${Date.now().toString().slice(-4)}`,
       name: '',
@@ -110,6 +136,7 @@ export const Customers: React.FC = () => {
   // Handle Open Edit Customer Modal
   const handleOpenEditModal = (cus: Customer) => {
     setEditingCustomer(cus);
+    setPhoneError('');
     setFormData({
       code: cus.id,
       name: cus.name,
@@ -135,8 +162,26 @@ export const Customers: React.FC = () => {
   // Save Customer (Create or Update)
   const handleSaveCustomer = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name.trim() || !formData.phone.trim()) {
-      alert('Vui lòng nhập đầy đủ Họ tên và Số điện thoại!');
+    if (!formData.name.trim()) {
+      alert('Vui lòng nhập họ tên khách hàng!');
+      return;
+    }
+
+    if (!formData.phone.trim()) {
+      setPhoneError('Vui lòng nhập số điện thoại!');
+      alert('Vui lòng nhập số điện thoại khách hàng!');
+      return;
+    }
+
+    if (/[^\d]/.test(formData.phone.trim())) {
+      setPhoneError('Số điện thoại chỉ được phép điền số, không được chứa chữ cái hoặc ký tự đặc biệt!');
+      alert('Số điện thoại chỉ được phép điền số, không được chứa chữ cái!');
+      return;
+    }
+
+    if (formData.phone.trim().length < 10 || formData.phone.trim().length > 11) {
+      setPhoneError('Số điện thoại không hợp lệ (phải từ 10 đến 11 số)!');
+      alert('Số điện thoại không hợp lệ! Vui lòng nhập từ 10 đến 11 số.');
       return;
     }
 
@@ -197,7 +242,10 @@ export const Customers: React.FC = () => {
   // Save Points Change
   const handleSavePoints = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedCustomerForPoints || pointsAmount <= 0) return;
+    if (!selectedCustomerForPoints || !Number.isSafeInteger(pointsAmount) || pointsAmount <= 0) return;
+    if (pointsChangeType === 'subtract' && pointsAmount > selectedCustomerForPoints.rewardPoints) {
+      alert('Không thể trừ nhiều hơn số điểm hiện có'); return;
+    }
 
     const changeVal = pointsChangeType === 'add' ? pointsAmount : -pointsAmount;
     let newPoints = 0;
@@ -228,6 +276,8 @@ export const Customers: React.FC = () => {
 
   // Quick Inline Adjust Points (+/- 10 points shortcut)
   const handleQuickAdjustPoints = async (cusId: string, amount: number) => {
+    const current = customers.find(c => c.id === cusId);
+    if (!current || !Number.isSafeInteger(amount) || current.rewardPoints + amount < 0) { showToast('Không đủ điểm để trừ'); return; }
     let updatedPoints = 0;
     setCustomers((prev) =>
       prev.map((c) => {
@@ -519,6 +569,7 @@ export const Customers: React.FC = () => {
                       {/* Actions */}
                       <td className="p-4 text-center">
                         <div className="flex items-center justify-center gap-1.5">
+                          <CustomerActivationButton customerId={cus.id} name={cus.name} />
                           <button
                             onClick={() => handleOpenPointsModal(cus)}
                             className="p-1.5 rounded-lg bg-sky-100 text-sky-800 hover:bg-sky-200 transition-colors"
@@ -590,7 +641,7 @@ export const Customers: React.FC = () => {
                 <label className="block text-stone-600 font-bold mb-1">
                   Họ và tên <span className="text-rose-500">*</span>
                 </label>
-                <input
+                <ValidatedInput kind="person"
                   type="text"
                   required
                   value={formData.name}
@@ -602,21 +653,35 @@ export const Customers: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-stone-600 font-bold mb-1">
-                    Số điện thoại <span className="text-rose-500">*</span>
-                  </label>
-                  <input
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="block text-stone-600 font-bold">
+                      Số điện thoại <span className="text-rose-500">*</span>
+                    </label>
+                    <span className="text-[10px] text-stone-400 font-normal">Chỉ điền số</span>
+                  </div>
+                  <ValidatedInput kind="phone"
                     type="tel"
+                    inputMode="numeric"
                     required
                     value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    onChange={handlePhoneChange}
                     placeholder="0912..."
-                    className="w-full bg-sky-50/40 border border-sky-200 rounded-xl px-3.5 py-2.5 text-stone-900 focus:outline-none focus:border-sky-500"
+                    className={`w-full rounded-xl px-3.5 py-2.5 text-stone-900 focus:outline-none transition-all ${
+                      phoneError
+                        ? 'bg-rose-50/60 border-2 border-rose-500 focus:border-rose-600'
+                        : 'bg-sky-50/40 border border-sky-200 focus:border-sky-500'
+                    }`}
                   />
+                  {phoneError && (
+                    <p className="text-[11px] text-rose-600 font-medium flex items-center gap-1 mt-1">
+                      <FiAlertCircle className="w-3.5 h-3.5 shrink-0 text-rose-500" />
+                      <span>{phoneError}</span>
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-stone-600 font-bold mb-1">Email</label>
-                  <input
+                  <ValidatedInput kind="email"
                     type="email"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -641,9 +706,10 @@ export const Customers: React.FC = () => {
                 </div>
                 <div>
                   <label className="block text-stone-600 font-bold mb-1">Điểm Thưởng Tích Lũy</label>
-                  <input
+                  <NumericInput
                     type="number"
                     min="0"
+                    integer
                     value={formData.rewardPoints}
                     onChange={(e) => setFormData({ ...formData, rewardPoints: Number(e.target.value) })}
                     className="w-full bg-sky-50/40 border border-sky-200 rounded-xl px-3.5 py-2.5 text-stone-900 focus:outline-none focus:border-sky-500"
@@ -653,7 +719,7 @@ export const Customers: React.FC = () => {
 
               <div>
                 <label className="block text-stone-600 font-bold mb-1">Tổng Chi Tiêu (VNĐ)</label>
-                <input
+                <NumericInput
                   type="number"
                   min="0"
                   step="1000"
@@ -784,9 +850,10 @@ export const Customers: React.FC = () => {
               {/* Custom Points Amount */}
               <div>
                 <label className="block text-stone-600 font-bold mb-1">Số điểm điều chỉnh</label>
-                <input
+                <NumericInput
                   type="number"
                   min="1"
+                  integer
                   value={pointsAmount}
                   onChange={(e) => setPointsAmount(Math.max(1, Number(e.target.value)))}
                   className="w-full bg-sky-50/40 border border-sky-200 rounded-xl px-3.5 py-2.5 text-stone-900 focus:outline-none focus:border-sky-500 font-bold text-sm"

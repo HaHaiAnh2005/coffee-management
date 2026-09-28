@@ -1,3 +1,5 @@
+import { ValidatedInput } from '../../components/common/ValidatedInput';
+import { NumericInput } from '../../components/common/NumericInput';
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useProductStore } from '../../store/product.store';
@@ -269,7 +271,7 @@ export const Products: React.FC = () => {
 
             <div className="space-y-1">
               <label className="text-xs text-stone-700 font-bold">Tên món thức uống / bánh:</label>
-              <input
+              <ValidatedInput kind="text"
                 type="text"
                 required
                 value={name}
@@ -297,7 +299,7 @@ export const Products: React.FC = () => {
 
               <div className="space-y-1">
                 <label className="text-xs text-stone-700 font-bold">Giá bán Size M (VNĐ):</label>
-                <input
+                <NumericInput
                   type="number"
                   required
                   min={0}

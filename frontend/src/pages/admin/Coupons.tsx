@@ -1,3 +1,4 @@
+import { NumericInput } from '../../components/common/NumericInput';
 import React, { useState } from 'react';
 import { INITIAL_COUPONS, type Coupon, type MembershipTier } from '../../api/coupon.api';
 import { formatCurrency } from '../../utils/formatCurrency';
@@ -70,6 +71,9 @@ export const Coupons: React.FC = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.code) return;
+    if (coupons.some(cp => cp.id !== editingCoupon?.id && cp.code.toUpperCase() === formData.code.trim().toUpperCase())) {
+      alert('Mã giảm giá đã tồn tại'); return;
+    }
 
     if (editingCoupon) {
       // Edit
@@ -237,7 +241,7 @@ export const Coupons: React.FC = () => {
                 <input
                   type="text"
                   required
-                  value={formData.code}
+                  pattern="[A-Za-z0-9_\-]{1,30}" title="Mã gồm 1–30 chữ cái, chữ số, gạch ngang hoặc gạch dưới" maxLength={30} value={formData.code}
                   onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
                   placeholder="VD: BONG20K, CHAOSANG..."
                   className="w-full bg-sky-50/40 border border-sky-200 rounded-xl px-3.5 py-2 text-xs text-sky-800 font-mono font-bold focus:outline-none focus:border-sky-500 uppercase"
@@ -273,9 +277,10 @@ export const Coupons: React.FC = () => {
 
                 <div className="space-y-1">
                   <label className="text-[11px] font-bold text-stone-600 uppercase">Giá trị giảm:</label>
-                  <input
+                  <NumericInput
                     type="number"
                     required
+                    max={formData.discountType === 'percent' ? 100 : undefined}
                     value={formData.discountValue}
                     onChange={(e) => setFormData({ ...formData, discountValue: Number(e.target.value) })}
                     className="w-full bg-sky-50/40 border border-sky-200 rounded-xl px-3 py-2 text-xs text-stone-900 focus:outline-none focus:border-sky-500 font-mono"
@@ -286,7 +291,7 @@ export const Coupons: React.FC = () => {
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <label className="text-[11px] font-bold text-stone-600 uppercase">Đơn tối thiểu (VND):</label>
-                  <input
+                  <NumericInput
                     type="number"
                     value={formData.minOrderValue}
                     onChange={(e) => setFormData({ ...formData, minOrderValue: Number(e.target.value) })}

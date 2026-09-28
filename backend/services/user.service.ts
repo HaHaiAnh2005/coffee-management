@@ -15,7 +15,7 @@ export class UserService {
   }
 
   async update(id: string, data: Partial<IUser>): Promise<IUser | null> {
-    return await User.findOneAndUpdate({ id }, data, { new: true });
+    return await User.findOneAndUpdate({ id }, data, { new: true, runValidators: true });
   }
 
   async delete(id: string): Promise<IUser | null> {

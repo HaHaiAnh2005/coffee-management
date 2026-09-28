@@ -2,16 +2,25 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import User, { IUser } from '../models/user.model';
 import Customer from '../models/customer.model';
+import { activateCustomer } from './customer-activation.service';
+import { personNameError, phoneError, emailError } from '../../shared/validation';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'coffee_management_super_secret_jwt_key_2026';
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '1d';
 
 export class AuthService {
-  async register(userData: Partial<IUser> & { password?: string }): Promise<Omit<IUser, 'password'>> {
-    const { email, password, name, role, avatar, phone } = userData;
+  async register(userData: Partial<IUser> & { password?: string; activationCode?: string }): Promise<Omit<IUser, 'password'>> {
+    const { password, name, avatar, activationCode } = userData;
+    const email = typeof userData.email === 'string' ? userData.email.trim().toLowerCase() : '';
+    const phone = typeof userData.phone === 'string' ? userData.phone.trim() : '';
+    const identityError = personNameError(name) || phoneError(phone) || emailError(email);
+    if (identityError) throw new Error(identityError);
+    if (!email || !phone || typeof password !== 'string' || password.length < 6) {
+      throw new Error('Vui lòng nhập email, số điện thoại và mật khẩu ít nhất 6 ký tự.');
+    }
 
     // Check if email already registered
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ $or: [{ email }, { phone }] });
     if (existingUser) {
       throw new Error('Email đã được đăng ký tài khoản khác.');
     }
@@ -23,7 +32,7 @@ export class AuthService {
     if (phone) {
       const existingCustomer = await Customer.findOne({ phone });
       if (existingCustomer) {
-        throw new Error('Số điện thoại này đã được đăng ký tài khoản khách hàng.');
+        return await activateCustomer(existingCustomer.id, email, phone, password, activationCode);
       }
     }
 
@@ -95,15 +104,18 @@ export class AuthService {
       throw new Error('Tài khoản hoặc mật khẩu không chính xác.');
     }
 
-    // If user has a password in DB and password was provided, verify it
-    if (user.password && password) {
+    // A missing password or a demo/PIN fallback must never issue an authenticated token.
+    if (!user.password || !password) {
+      throw new Error('Tài khoản hoặc mật khẩu không chính xác.');
+    }
+    {
       let isMatch = false;
       try {
         isMatch = await bcrypt.compare(password, user.password);
       } catch {
         isMatch = false;
       }
-      if (!isMatch && password !== user.password && password !== '123' && password !== '123456' && (!user.pin || password !== user.pin)) {
+      if (!isMatch) {
         throw new Error('Tài khoản hoặc mật khẩu không chính xác.');
       }
     }
@@ -132,4 +144,3 @@ export class AuthService {
 }
 
 export default new AuthService();
-

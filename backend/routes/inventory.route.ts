@@ -1,7 +1,9 @@
 import { Router } from 'express';
 import inventoryController from '../controllers/inventory.controller';
+import { authenticateToken, requireRole } from '../middleware/auth.middleware';
 
 const router = Router();
+router.use(authenticateToken, requireRole('ADMIN', 'MANAGER'));
 
 // Receipts (Phiếu nhập / xuất kho)
 router.get('/receipts', (req, res) => inventoryController.getAllReceipts(req, res));

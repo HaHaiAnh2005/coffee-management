@@ -1,3 +1,4 @@
+import { NumericInput } from './common/NumericInput';
 import React, { useState } from 'react';
 import { useCartStore } from '../stores/useCartStore';
 import { formatVND } from '../utils/formatters';
@@ -232,9 +233,10 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ onCheckout, onRequestOve
                 <FiTag className="w-3 h-3 text-amber-700" /> Giảm giá:
               </span>
               <div className="flex items-center gap-1">
-                <input
+                <NumericInput
                   type="number"
-                  value={discount || ''}
+                  value={discount}
+                  max={subtotal}
                   onChange={(e) => handleDiscountChange(Number(e.target.value))}
                   placeholder="0"
                   className="w-20 bg-amber-50/60 border border-amber-200 rounded px-2 py-0.5 text-right text-xs text-amber-900 font-bold focus:outline-none focus:border-amber-600"

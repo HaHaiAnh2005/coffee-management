@@ -398,8 +398,10 @@ export const seedData = async (): Promise<void> => {
     ];
 
     console.log('[Seeder] Ensuring all 9 customers exist in MongoDB...');
+    const { ensureSampleCustomerAccount } = await import('./customer-accounts');
     for (const c of sampleCustomers) {
       await Customer.findOneAndUpdate({ phone: c.phone }, c, { upsert: true, new: true });
+      await ensureSampleCustomerAccount(c);
     }
 
     const sampleStaff = [
@@ -410,9 +412,11 @@ export const seedData = async (): Promise<void> => {
       { id: 'EMP05', name: 'Trần Văn Phục Vụ', email: 'waiter@lauracoffee.vn', phone: '0966666666', role: 'WAITER' },
     ];
 
+    const { ensureSeededStaffPassword } = await import('./staff-passwords');
     console.log('[Seeder] Ensuring RBAC staff accounts exist in MongoDB...');
     for (const s of sampleStaff) {
       await User.findOneAndUpdate({ id: s.id }, s, { upsert: true, new: true });
+      await ensureSeededStaffPassword(s.id, s.email);
     }
 
     const settingsCount = await Settings.countDocuments();

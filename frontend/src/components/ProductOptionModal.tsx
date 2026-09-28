@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useCartStore } from '../store/cart.store';
 import type { CartItem, Product, SelectedOption } from '../types';
 import { formatVND } from '../utils/formatters';
 import { FiX, FiMinus, FiPlus, FiCheck, FiEdit2 } from 'react-icons/fi';
@@ -92,7 +93,7 @@ export const ProductOptionModal: React.FC<ProductOptionModalProps> = ({
     } else {
       onAddToCart(product, size, sugarLevel, iceLevel, selectedToppings, quantity, finalNote, voucherDiscount);
     }
-    onClose();
+    if (!useCartStore.getState().validationError) onClose();
   };
 
   return (
@@ -284,7 +285,8 @@ export const ProductOptionModal: React.FC<ProductOptionModalProps> = ({
             </button>
             <span className="w-6 text-center font-bold text-stone-900 text-sm">{quantity}</span>
             <button
-              onClick={() => setQuantity(quantity + 1)}
+              disabled={quantity >= 20} title="Tối đa 20 cho mỗi món"
+              onClick={() => setQuantity(Math.min(20, quantity + 1))}
               className="w-8 h-8 rounded-lg bg-stone-100 text-stone-700 hover:bg-stone-200 flex items-center justify-center font-bold"
             >
               <FiPlus className="w-3.5 h-3.5" />

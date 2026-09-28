@@ -16,7 +16,7 @@ export class ProductService {
   }
 
   async update(id: string, data: Partial<IProduct>): Promise<IProduct | null> {
-    return await Product.findOneAndUpdate({ id }, data, { new: true });
+    return await Product.findOneAndUpdate({ id }, data, { new: true, runValidators: true });
   }
 
   async delete(id: string): Promise<IProduct | null> {

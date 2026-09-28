@@ -16,7 +16,7 @@ export class InventoryService {
   }
 
   async update(id: string, data: Partial<IInventory>): Promise<IInventory | null> {
-    return await Inventory.findOneAndUpdate({ id }, data, { new: true });
+    return await Inventory.findOneAndUpdate({ id }, data, { new: true, runValidators: true });
   }
 
   async delete(id: string): Promise<IInventory | null> {
@@ -34,25 +34,37 @@ export class InventoryService {
 
   async createReceipt(data: Partial<IInventoryReceipt>): Promise<IInventoryReceipt> {
     const receipt = new InventoryReceipt(data);
+    await receipt.validate();
+    if (!data.items?.length) throw new Error('Phiếu kho phải có ít nhất một nguyên liệu');
+    if (data.status === 'CANCELLED') throw new Error('Không thể ghi tồn kho cho phiếu đã hủy');
+
+    // Validate every line, including repeated materials, before persisting anything.
+    const changes = new Map<string, { material: IInventory; quantity: number; unitPrice: number }>();
+    for (const item of data.items) {
+      let change = changes.get(item.materialId);
+      if (!change) {
+        const material = await Inventory.findOne({ id: item.materialId });
+        if (!material) throw new Error(`Nguyên liệu không tồn tại: ${item.materialId}`);
+        change = { material, quantity: material.quantity, unitPrice: material.unitPrice };
+        changes.set(item.materialId, change);
+      }
+      if (data.type === 'EXPORT') {
+        if (change.quantity < item.quantity) throw new Error(`Không đủ tồn kho: ${item.materialName}`);
+        change.quantity -= item.quantity;
+      } else {
+        change.quantity += item.quantity;
+        if (item.unitPrice > 0) change.unitPrice = item.unitPrice;
+      }
+      if (!Number.isFinite(change.quantity)) throw new Error('Số lượng tồn kho không hợp lệ');
+    }
     await receipt.save();
 
     // Tự động cập nhật số lượng tồn kho của từng nguyên liệu
-    if (data.items && Array.isArray(data.items)) {
-      for (const item of data.items) {
-        const material = await Inventory.findOne({ id: item.materialId });
-        if (material) {
-          if (data.type === 'IMPORT') {
-            material.quantity = (material.quantity || 0) + item.quantity;
-            if (item.unitPrice > 0) {
-              material.unitPrice = item.unitPrice;
-            }
-          } else if (data.type === 'EXPORT') {
-            material.quantity = Math.max(0, (material.quantity || 0) - item.quantity);
-          }
-          material.lastUpdated = new Date().toISOString();
-          await material.save();
-        }
-      }
+    for (const { material, quantity, unitPrice } of changes.values()) {
+      material.quantity = quantity;
+      material.unitPrice = unitPrice;
+      material.lastUpdated = new Date().toISOString();
+      await material.save();
     }
 
     return receipt;

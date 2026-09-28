@@ -1,3 +1,6 @@
+import { validateNumericInputs } from '../utils/numericValidation';
+import { orderQuantityError } from '../../../shared/validation';
+import { NumericInput } from './common/NumericInput';
 import React, { useState } from 'react';
 import { useCartStore } from '../stores/useCartStore';
 import { useOrderStore } from '../stores/useOrderStore';
@@ -38,6 +41,12 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
   );
 
   const handleConfirmPayment = () => {
+    const error = orderQuantityError(items);
+    if (error) { alert(error); return; }
+    if (!validateNumericInputs()) return;
+    if (paymentMethod === 'cash' && (!Number.isFinite(cashGiven) || cashGiven < total)) {
+      alert('Tiền khách đưa phải là số hợp lệ và đủ thanh toán'); return;
+    }
     const newOrder = createOrder({
       tableId: selectedTableId || undefined,
       tableName: selectedTableName || undefined,
@@ -256,9 +265,9 @@ export const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose })
 
                 <div className="space-y-1.5">
                   <label className="text-xs text-stone-600 font-semibold">Tiền khách đưa (đ):</label>
-                  <input
+                  <NumericInput
                     type="number"
-                    value={cashGiven || ''}
+                    value={cashGiven}
                     onChange={(e) => setCashGiven(Number(e.target.value))}
                     className="w-full bg-amber-50/50 border border-amber-300 rounded-xl px-4 py-2.5 text-base font-bold text-amber-900 focus:outline-none focus:border-amber-600"
                   />

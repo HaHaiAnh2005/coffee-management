@@ -15,7 +15,7 @@ const ProductSchema: Schema = new Schema(
     id: { type: String, required: true, unique: true },
     name: { type: String, required: true },
     categoryId: { type: String, required: true },
-    price: { type: Number, required: true },
+    price: { type: Number, required: true, min: [0, 'Giá trị không được âm'], validate: { validator: Number.isFinite, message: 'Phải là số hữu hạn' } },
     image: { type: String },
     description: { type: String },
     isAvailable: { type: Boolean, default: true },

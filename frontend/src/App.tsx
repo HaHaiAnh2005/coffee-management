@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { CartValidationNotice } from './components/common/CartValidationNotice';
 import { BrowserRouter } from 'react-router-dom';
 import { AppRoutes } from './routes';
 import { AuthProvider } from './contexts/AuthContext';
@@ -14,6 +15,7 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
+        <CartValidationNotice />
         <AppRoutes />
       </AuthProvider>
     </BrowserRouter>

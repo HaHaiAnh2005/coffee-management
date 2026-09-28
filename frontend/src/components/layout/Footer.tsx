@@ -9,7 +9,7 @@ export const Footer: React.FC = () => {
 
         {/* Subtle, discrete link for internal staff login */}
         <Link
-          to="/admin/login"
+          to="/login"
           className="text-[11px] text-stone-600 hover:text-stone-950 hover:underline transition-opacity opacity-50 hover:opacity-100 font-mono"
         >
           Quản trị nội bộ

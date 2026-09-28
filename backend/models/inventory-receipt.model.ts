@@ -30,9 +30,9 @@ const ReceiptItemSchema: Schema = new Schema(
     materialId: { type: String, required: true },
     materialName: { type: String, required: true },
     unit: { type: String, required: true },
-    quantity: { type: Number, required: true, min: 0.01 },
-    unitPrice: { type: Number, required: true, default: 0 },
-    totalPrice: { type: Number, required: true, default: 0 },
+    quantity: { type: Number, required: true, min: 0.01, validate: { validator: Number.isFinite, message: 'Phải là số hữu hạn' } },
+    unitPrice: { type: Number, required: true, default: 0, min: [0, 'Giá trị không được âm'], validate: { validator: Number.isFinite, message: 'Phải là số hữu hạn' } },
+    totalPrice: { type: Number, required: true, default: 0, min: [0, 'Giá trị không được âm'], validate: { validator: Number.isFinite, message: 'Phải là số hữu hạn' } },
   },
   { _id: false }
 );
@@ -46,7 +46,7 @@ const InventoryReceiptSchema: Schema = new Schema(
     supplier: { type: String },
     creatorName: { type: String, required: true },
     items: { type: [ReceiptItemSchema], required: true },
-    totalAmount: { type: Number, required: true, default: 0 },
+    totalAmount: { type: Number, required: true, default: 0, min: [0, 'Giá trị không được âm'], validate: { validator: Number.isFinite, message: 'Phải là số hữu hạn' } },
     notes: { type: String },
     status: { type: String, enum: ['COMPLETED', 'CANCELLED'], default: 'COMPLETED' },
     createdAt: { type: String, required: true },

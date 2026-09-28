@@ -112,12 +112,14 @@ export const ProductDetail: React.FC = () => {
 
   const handleAddToCart = () => {
     addItem(product, size, sugar as any, ice as any, getFormattedOptions(), quantity, finalNote);
+    if (useCartStore.getState().validationError) return;
     setIsAddedToast(true);
     setTimeout(() => setIsAddedToast(false), 3000);
   };
 
   const handleOrderNow = () => {
     addItem(product, size, sugar as any, ice as any, getFormattedOptions(), quantity, finalNote);
+    if (useCartStore.getState().validationError) return;
     navigate('/checkout');
   };
 
@@ -375,7 +377,8 @@ export const ProductDetail: React.FC = () => {
                 <span className="w-8 text-center font-bold text-stone-900 text-sm">{quantity}</span>
                 <button
                   type="button"
-                  onClick={() => setQuantity(quantity + 1)}
+                  disabled={quantity >= 20} title="Tối đa 20 cho mỗi món"
+                  onClick={() => setQuantity(Math.min(20, quantity + 1))}
                   className="w-8 h-8 rounded-lg text-stone-700 bg-white border border-amber-200 hover:bg-amber-100 font-bold cursor-pointer transition-colors"
                 >
                   +

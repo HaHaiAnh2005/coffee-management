@@ -1,3 +1,5 @@
+import { validateNumericBody } from '../middleware/numeric.middleware';
+import { validateInputBody } from '../middleware/input.middleware';
 import { Router } from 'express';
 import authRoute from './auth.route';
 import userRoute from './user.route';
@@ -14,6 +16,9 @@ import chatbotRoute from './chatbot.route';
 import paymentRoute from './payment.route';
 
 const router = Router();
+
+router.use(['/auth/register', '/users', '/products', '/orders', '/customers', '/coupons', '/inventory', '/shifts', '/settings', '/payment/create-url', '/payment/sepay-orders'], validateNumericBody);
+router.use(validateInputBody);
 
 router.get('/', (req, res) => {
   res.json({

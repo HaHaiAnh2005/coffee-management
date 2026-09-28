@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 
 // Layouts
 import { MainLayout } from '../layouts/MainLayout';
@@ -23,7 +23,6 @@ import { Register } from '../pages/client/Register';
 import { PaymentResult } from '../pages/client/PaymentResult';
 
 // Admin Pages
-import { StaffLogin } from '../pages/admin/StaffLogin';
 import { Dashboard } from '../pages/admin/Dashboard';
 import { Products } from '../pages/admin/Products';
 import { Categories } from '../pages/admin/Categories';
@@ -78,7 +77,7 @@ export const AppRoutes: React.FC = () => {
       {/* Auth Routes */}
       <Route element={<AuthLayout />}>
         <Route path="login" element={<Login />} />
-        <Route path="admin/login" element={<StaffLogin />} />
+        <Route path="admin/login" element={<Navigate to="/login" replace />} />
         <Route path="register" element={<Register />} />
       </Route>
 

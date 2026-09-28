@@ -1,3 +1,4 @@
+import { ValidatedInput } from '../../components/common/ValidatedInput';
 import React, { useState } from 'react';
 import { useAuthStore } from '../../store/auth.store';
 import { INITIAL_CUSTOMERS } from '../../api/customer.api';
@@ -399,7 +400,7 @@ export const Profile: React.FC = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div className="space-y-1">
                   <label className="text-xs font-bold text-stone-700 block">Họ và tên *</label>
-                  <input
+                  <ValidatedInput kind="person"
                     type="text"
                     required
                     value={editName}
@@ -411,7 +412,7 @@ export const Profile: React.FC = () => {
 
                 <div className="space-y-1">
                   <label className="text-xs font-bold text-stone-700 block">Số điện thoại *</label>
-                  <input
+                  <ValidatedInput kind="phone"
                     type="text"
                     required
                     value={editPhone}
@@ -424,7 +425,7 @@ export const Profile: React.FC = () => {
 
               <div className="space-y-1">
                 <label className="text-xs font-bold text-stone-700 block">Địa chỉ Email</label>
-                <input
+                <ValidatedInput kind="email"
                   type="email"
                   value={editEmail}
                   onChange={(e) => setEditEmail(e.target.value)}
@@ -461,7 +462,7 @@ export const Profile: React.FC = () => {
                 <div className="space-y-1">
                   <label className="text-xs font-bold text-stone-700 block">Ngày sinh</label>
                   <input
-                    type="date"
+                    type="date" max={new Date().toISOString().slice(0, 10)}
                     value={editBirthday}
                     onChange={(e) => setEditBirthday(e.target.value)}
                     className="w-full bg-stone-50 border border-stone-200 rounded-xl px-3.5 py-2 text-xs text-stone-900 focus:outline-none focus:border-amber-800 focus:bg-white font-medium"

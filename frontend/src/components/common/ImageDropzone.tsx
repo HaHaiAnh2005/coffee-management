@@ -17,6 +17,7 @@ export const ImageDropzone: React.FC<ImageDropzoneProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (file: File) => {
+    if (file.size > 5 * 1024 * 1024) { alert('Ảnh tối đa 5 MB'); return; }
     if (!file.type.startsWith('image/')) {
       alert('Vui lòng chỉ chọn tệp hình ảnh (PNG, JPG, WEBP, GIF...)');
       return;

@@ -1,3 +1,4 @@
+import { ValidatedInput } from '../components/common/ValidatedInput';
 import React, { useState } from 'react';
 import { useSettingsStore } from '../stores/useSettingsStore';
 import { FiSettings, FiCheckCircle } from 'react-icons/fi';
@@ -42,7 +43,7 @@ export const SettingsPage: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-1">
             <label className="text-xs text-stone-600 font-semibold">Tên Quán Cà Phê:</label>
-            <input
+            <ValidatedInput kind="text"
               type="text"
               value={formState.storeName}
               onChange={(e) => setFormState({ ...formState, storeName: e.target.value })}
@@ -52,7 +53,7 @@ export const SettingsPage: React.FC = () => {
 
           <div className="space-y-1">
             <label className="text-xs text-stone-600 font-semibold">Số điện thoại liên hệ:</label>
-            <input
+            <ValidatedInput required kind="phone"
               type="text"
               value={formState.phone}
               onChange={(e) => setFormState({ ...formState, phone: e.target.value })}
@@ -62,7 +63,7 @@ export const SettingsPage: React.FC = () => {
 
           <div className="md:col-span-2 space-y-1">
             <label className="text-xs text-stone-600 font-semibold">Địa chỉ quán:</label>
-            <input
+            <ValidatedInput kind="text"
               type="text"
               value={formState.address}
               onChange={(e) => setFormState({ ...formState, address: e.target.value })}
@@ -78,7 +79,7 @@ export const SettingsPage: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="space-y-1">
             <label className="text-xs text-stone-600 font-semibold">Tên Ngân Hàng (vd: MBBank, Vietcombank):</label>
-            <input
+            <ValidatedInput kind="text"
               type="text"
               value={formState.bankName}
               onChange={(e) => setFormState({ ...formState, bankName: e.target.value })}
@@ -88,7 +89,7 @@ export const SettingsPage: React.FC = () => {
 
           <div className="space-y-1">
             <label className="text-xs text-stone-600 font-semibold">Số tài khoản:</label>
-            <input
+            <ValidatedInput required kind="account"
               type="text"
               value={formState.bankAccountNo}
               onChange={(e) => setFormState({ ...formState, bankAccountNo: e.target.value })}
@@ -98,7 +99,7 @@ export const SettingsPage: React.FC = () => {
 
           <div className="space-y-1">
             <label className="text-xs text-stone-600 font-semibold">Tên chủ tài khoản (viết hoa không dấu):</label>
-            <input
+            <ValidatedInput kind="text"
               type="text"
               value={formState.bankAccountName}
               onChange={(e) => setFormState({ ...formState, bankAccountName: e.target.value })}

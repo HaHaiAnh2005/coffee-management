@@ -1,7 +1,9 @@
 import { Router } from 'express';
 import userController from '../controllers/user.controller';
+import { authenticateToken, requireRole } from '../middleware/auth.middleware';
 
 const router = Router();
+router.use(authenticateToken, requireRole('ADMIN', 'MANAGER'));
 
 router.get('/', (req, res) => userController.getAll(req, res));
 router.get('/:id', (req, res) => userController.getById(req, res));

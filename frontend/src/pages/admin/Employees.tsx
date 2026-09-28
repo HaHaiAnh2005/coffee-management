@@ -1,3 +1,6 @@
+import { ValidatedInput } from '../../components/common/ValidatedInput';
+import { NumericInput } from '../../components/common/NumericInput';
+import { employeeSchema } from '../../schemas/employee.schema';
 import React, { useState } from 'react';
 import { INITIAL_EMPLOYEES } from '../../api/employee.api';
 import { formatCurrency } from '../../utils/formatCurrency';
@@ -76,6 +79,10 @@ export const Employees: React.FC = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.phone) return;
+    const salaryResult = employeeSchema.shape.salary.safeParse(formData.salary);
+    if (!salaryResult.success) { alert('Lương phải là số hợp lệ và không được âm'); return; }
+    if (!/^\d{10}$/.test(formData.phone)) { alert('Số điện thoại phải gồm 10 chữ số'); return; }
+    if (formData.pin && !/^\d{4}$/.test(formData.pin)) { alert('Mã PIN phải gồm đúng 4 chữ số'); return; }
 
     if (editingEmployee) {
       // Edit
@@ -286,7 +293,7 @@ export const Employees: React.FC = () => {
                 </div>
                 <div className="space-y-1">
                   <label className="text-[11px] font-bold text-stone-600 uppercase">Họ và tên:</label>
-                  <input
+                  <ValidatedInput kind="person"
                     type="text"
                     required
                     value={formData.name}
@@ -300,7 +307,7 @@ export const Employees: React.FC = () => {
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <label className="text-[11px] font-bold text-stone-600 uppercase">Email:</label>
-                  <input
+                  <ValidatedInput kind="email"
                     type="email"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -310,9 +317,10 @@ export const Employees: React.FC = () => {
                 </div>
                 <div className="space-y-1">
                   <label className="text-[11px] font-bold text-stone-600 uppercase">Số điện thoại:</label>
-                  <input
+                  <ValidatedInput kind="phone"
                     type="text"
                     required
+                    inputMode="numeric" pattern="0[0-9]{9,10}" title="Số điện thoại gồm 10–11 chữ số và bắt đầu bằng 0"
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                     placeholder="0988..."
@@ -341,9 +349,9 @@ export const Employees: React.FC = () => {
                   <label className="text-[11px] font-bold text-amber-800 uppercase flex items-center gap-1">
                     <FiShield className="text-amber-600" /> Mã PIN Duyệt (4 Số):
                   </label>
-                  <input
+                  <ValidatedInput kind="pin"
                     type="text"
-                    maxLength={4}
+                    maxLength={4} inputMode="numeric" pattern="[0-9]{4}" title="Mã PIN phải gồm đúng 4 chữ số"
                     value={formData.pin}
                     onChange={(e) => setFormData({ ...formData, pin: e.target.value })}
                     placeholder="Ví dụ: 1234"
@@ -368,8 +376,9 @@ export const Employees: React.FC = () => {
                 </div>
                 <div className="space-y-1">
                   <label className="text-[11px] font-bold text-stone-600 uppercase">Lương cơ bản (VND):</label>
-                  <input
+                  <NumericInput
                     type="number"
+                    min={0} required
                     value={formData.salary}
                     onChange={(e) => setFormData({ ...formData, salary: Number(e.target.value) })}
                     className="w-full bg-sky-50/40 border border-sky-200 rounded-xl px-3 py-2 text-xs text-stone-900 focus:outline-none focus:border-sky-500 font-mono"

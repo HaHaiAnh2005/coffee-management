@@ -19,7 +19,7 @@ export class CustomerService {
   }
 
   async update(id: string, data: Partial<ICustomer>): Promise<ICustomer | null> {
-    return await Customer.findOneAndUpdate({ id }, data, { new: true });
+    return await Customer.findOneAndUpdate({ id }, data, { new: true, runValidators: true });
   }
 
   async delete(id: string): Promise<ICustomer | null> {

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { shiftApi } from '../api/shift.api';
+import { nonnegativeNumber } from '../../../shared/validation';
 
 export interface Shift {
   id: string;
@@ -47,6 +48,7 @@ export const useShiftStore = create<ShiftStoreState>()(
       },
 
       openShift: (cashierName, cashierId, initialCash) => {
+        if (!nonnegativeNumber(initialCash)) throw new Error('Tiền đầu ca phải hợp lệ và không âm');
         const newShift: Shift = {
           id: `SHIFT-${Date.now().toString().slice(-6)}`,
           cashierId,
@@ -65,6 +67,7 @@ export const useShiftStore = create<ShiftStoreState>()(
       },
 
       closeShift: (actualCash, totalCashRevenue, notes = '') => {
+        if (![actualCash, totalCashRevenue].every(nonnegativeNumber)) return null;
         const { currentShift, shiftHistory } = get();
         if (!currentShift) return null;
 

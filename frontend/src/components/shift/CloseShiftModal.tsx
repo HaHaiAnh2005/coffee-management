@@ -1,3 +1,4 @@
+import { NumericInput } from '../common/NumericInput';
 import React, { useState } from 'react';
 import { FiLock, FiDollarSign, FiAlertCircle, FiCheckSquare } from 'react-icons/fi';
 import { Modal } from '../common/Modal';
@@ -24,7 +25,7 @@ export const CloseShiftModal: React.FC<CloseShiftModalProps> = ({
   // Chỉ Thu ngân, Quản lý hoặc Chủ quán mới có quyền đóng ca POS
   const canCloseShift = Boolean(user?.role && ['CASHIER', 'MANAGER', 'ADMIN'].includes(user.role));
 
-  const initialCash = currentShift?.initialCash || 1000000;
+  const initialCash = currentShift?.initialCash ?? 1000000;
   const expectedTotal = initialCash + cashRevenueTotal;
 
   const [actualCash, setActualCash] = useState<number>(expectedTotal);
@@ -34,6 +35,7 @@ export const CloseShiftModal: React.FC<CloseShiftModalProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (![actualCash, cashRevenueTotal].every(value => Number.isFinite(value) && value >= 0 && value <= Number.MAX_SAFE_INTEGER)) { alert('Tiền cuối ca và doanh thu không hợp lệ'); return; }
 
     if (!canCloseShift) {
       alert('Quyền hạn bị từ chối: Chỉ Thu ngân hoặc Quản lý cửa hàng mới có quyền Kết toán & Đóng ca POS!');
@@ -99,7 +101,7 @@ export const CloseShiftModal: React.FC<CloseShiftModalProps> = ({
           <label className="block text-xs font-bold text-stone-700 mb-1.5 flex items-center gap-1">
             <FiDollarSign className="text-emerald-600" /> Tiền mặt đếm thực tế trong két cuối ca:
           </label>
-          <input
+          <NumericInput
             type="number"
             value={actualCash}
             onChange={(e) => setActualCash(Number(e.target.value))}

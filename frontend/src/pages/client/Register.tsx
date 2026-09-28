@@ -1,3 +1,4 @@
+import { ValidatedInput } from '../../components/common/ValidatedInput';
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/auth.store';
@@ -12,6 +13,7 @@ export const Register: React.FC = () => {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [activationCode, setActivationCode] = useState('');
 
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -27,6 +29,7 @@ export const Register: React.FC = () => {
         email,
         phone,
         password,
+        activationCode: activationCode.trim() || undefined,
         role: 'CUSTOMER',
       });
 
@@ -36,24 +39,16 @@ export const Register: React.FC = () => {
         return;
       }
 
-      const registeredUser = response.data.user;
-
-      loginSuccess(
-        {
-          id: registeredUser.id || `U-${Date.now()}`,
-          name: registeredUser.name || name,
-          email: registeredUser.email || email,
-          phone: registeredUser.phone || phone,
-          role: 'CUSTOMER',
-          avatar:
-            'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80',
-        },
-        'mock_jwt_token_laura_coffee_2026'
-      );
+      const session = await authApi.login({ email, password });
+      if (!session.success || !session.data?.token || !session.data.user) {
+        setErrorMessage('Tài khoản đã được tạo. Vui lòng vào trang đăng nhập để tiếp tục.');
+        return;
+      }
+      loginSuccess(session.data.user, session.data.token);
 
       navigate('/');
-    } catch (err: any) {
-      setErrorMessage(err.message || 'Đã xảy ra lỗi khi kết nối server.');
+    } catch (err: unknown) {
+      setErrorMessage(err && typeof err === 'object' && 'message' in err ? String(err.message) : 'Đã xảy ra lỗi khi kết nối server.');
     } finally {
       setIsLoading(false);
     }
@@ -66,7 +61,7 @@ export const Register: React.FC = () => {
           <label className="text-xs font-bold text-stone-700">Họ và tên:</label>
           <div className="relative">
             <FiUser className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400 w-4 h-4" />
-            <input
+            <ValidatedInput kind="person"
               type="text"
               required
               value={name}
@@ -81,7 +76,7 @@ export const Register: React.FC = () => {
           <label className="text-xs font-bold text-stone-700">Email:</label>
           <div className="relative">
             <FiMail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400 w-4 h-4" />
-            <input
+            <ValidatedInput kind="email"
               type="email"
               required
               value={email}
@@ -96,7 +91,7 @@ export const Register: React.FC = () => {
           <label className="text-xs font-bold text-stone-700">Số điện thoại:</label>
           <div className="relative">
             <FiPhone className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400 w-4 h-4" />
-            <input
+            <ValidatedInput kind="phone"
               type="tel"
               required
               value={phone}
@@ -113,6 +108,7 @@ export const Register: React.FC = () => {
             <FiLock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400 w-4 h-4" />
             <input
               type="password"
+              minLength={6}
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -120,6 +116,12 @@ export const Register: React.FC = () => {
               className="w-full bg-stone-50 border border-stone-200 rounded-xl pl-10 pr-4 py-2.5 text-xs text-stone-900 focus:outline-none focus:border-amber-800 focus:bg-white transition-all"
             />
           </div>
+        </div>
+
+        <div className="space-y-2">
+          <label htmlFor="activation-code" className="text-xs font-bold text-stone-700">Mã kích hoạt (khách đã có hồ sơ tại quán)</label>
+          <input id="activation-code" value={activationCode} onChange={e => setActivationCode(e.target.value)} autoComplete="off" placeholder="Nhập mã quản trị viên cấp" className="w-full border border-stone-200 rounded-xl px-4 py-2.5 text-xs" />
+          <p className="text-xs text-stone-500">Khách cũ liên hệ quán để xác nhận và nhận mã có hiệu lực 30 phút. Dùng đúng email và số điện thoại trong hồ sơ để giữ điểm và hạng. Khách mới để trống mục này.</p>
         </div>
 
         {errorMessage && (

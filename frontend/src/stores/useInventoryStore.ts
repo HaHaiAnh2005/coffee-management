@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type { InventoryItem, InventoryReceipt } from '../types';
 import { INITIAL_INVENTORY, INITIAL_RECEIPTS } from '../data/mockData';
+import { nonnegativeNumber } from '../../../shared/validation';
 
 interface InventoryState {
   items: InventoryItem[];
@@ -27,7 +28,8 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
 
   setSearchQuery: (query) => set({ searchQuery: query }),
 
-  updateQuantity: (itemId, newQuantity) =>
+  updateQuantity: (itemId, newQuantity) => {
+    if (!nonnegativeNumber(newQuantity)) return;
     set({
       items: get().items.map((item) =>
         item.id === itemId
@@ -38,9 +40,11 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
             }
           : item
       ),
-    }),
+    });
+  },
 
   addItem: (itemData) => {
+    if (![itemData.quantity, itemData.unitPrice, itemData.minAlertThreshold].every(nonnegativeNumber)) return;
     const newId = `INV${Math.floor(10 + Math.random() * 90)}`;
     const newItem: InventoryItem = {
       ...itemData,
@@ -51,14 +55,16 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
     set({ items: [newItem, ...get().items] });
   },
 
-  updateItem: (itemId, data) =>
+  updateItem: (itemId, data) => {
+    if ([data.quantity, data.unitPrice, data.minAlertThreshold].some(value => value !== undefined && !nonnegativeNumber(value))) return;
     set({
       items: get().items.map((item) =>
         item.id === itemId
           ? { ...item, ...data, lastUpdated: new Date().toISOString() }
           : item
       ),
-    }),
+    });
+  },
 
   deleteItem: (itemId) =>
     set({
@@ -68,6 +74,16 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
   getLowStockItems: () => get().items.filter((item) => item.quantity <= item.minAlertThreshold),
 
   createReceipt: (receiptData) => {
+    if (!receiptData.items.length || !nonnegativeNumber(receiptData.totalAmount)) throw new Error('Phiếu kho hoặc số tiền không hợp lệ');
+    const totals = new Map<string, number>();
+    for (const line of receiptData.items) {
+      if (![line.quantity, line.unitPrice, line.totalPrice].every(nonnegativeNumber) || line.quantity <= 0) throw new Error('Số lượng phải lớn hơn 0, đơn giá và thành tiền không âm');
+      const material = get().items.find(item => item.id === line.materialId);
+      if (!material) throw new Error('Nguyên liệu không tồn tại');
+      const total = (totals.get(line.materialId) || 0) + line.quantity;
+      if (receiptData.type === 'EXPORT' && total > material.quantity) throw new Error(`Không đủ tồn kho: ${material.name}`);
+      totals.set(line.materialId, total);
+    }
     const count = get().receipts.length + 1;
     const datePrefix = new Date().toISOString().slice(0, 10).replace(/-/g, '');
     const prefix = receiptData.type === 'IMPORT' ? 'PNK' : 'PXK';
@@ -90,14 +106,14 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
         if (receiptData.type === 'IMPORT') {
           return {
             ...material,
-            quantity: Number((material.quantity + lineItem.quantity).toFixed(2)),
+            quantity: Number((material.quantity + (totals.get(material.id) || 0)).toFixed(2)),
             unitPrice: lineItem.unitPrice > 0 ? lineItem.unitPrice : material.unitPrice,
             lastUpdated: createdAt,
           };
         } else if (receiptData.type === 'EXPORT') {
           return {
             ...material,
-            quantity: Number(Math.max(0, material.quantity - lineItem.quantity).toFixed(2)),
+            quantity: Number((material.quantity - (totals.get(material.id) || 0)).toFixed(2)),
             lastUpdated: createdAt,
           };
         }

@@ -29,6 +29,7 @@ export interface LoginCredentials {
 }
 
 export interface RegisterPayload {
+  activationCode?: string;
   name: string;
   phone: string;
   email: string;

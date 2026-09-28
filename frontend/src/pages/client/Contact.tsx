@@ -1,3 +1,4 @@
+import { ValidatedInput } from '../../components/common/ValidatedInput';
 import React, { useState } from 'react';
 import { FiMapPin, FiPhone, FiMail, FiSend } from 'react-icons/fi';
 
@@ -79,7 +80,7 @@ export const Contact: React.FC = () => {
             <form onSubmit={handleSubmit} className="space-y-3.5 text-xs">
               <div className="space-y-1">
                 <label className="font-semibold text-stone-700">Họ và tên:</label>
-                <input
+                <ValidatedInput kind="person"
                   type="text"
                   required
                   value={name}
@@ -91,7 +92,7 @@ export const Contact: React.FC = () => {
 
               <div className="space-y-1">
                 <label className="font-semibold text-stone-700">Số điện thoại:</label>
-                <input
+                <ValidatedInput kind="phone"
                   type="text"
                   required
                   value={phone}
@@ -103,7 +104,7 @@ export const Contact: React.FC = () => {
 
               <div className="space-y-1">
                 <label className="font-semibold text-stone-700">Email:</label>
-                <input
+                <ValidatedInput kind="email"
                   type="email"
                   required
                   value={email}

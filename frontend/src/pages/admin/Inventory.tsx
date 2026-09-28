@@ -1,3 +1,5 @@
+import { ValidatedInput } from '../../components/common/ValidatedInput';
+import { NumericInput } from '../../components/common/NumericInput';
 import React, { useState } from 'react';
 import { useInventoryStore } from '../../stores/useInventoryStore';
 import { useAuthStore } from '../../store/auth.store';
@@ -126,9 +128,9 @@ export const Inventory: React.FC = () => {
         unitPrice: selectedMat?.unitPrice || 0,
       };
     } else if (field === 'quantity') {
-      updated[index] = { ...updated[index], quantity: Math.max(0.1, Number(value)) };
+      updated[index] = { ...updated[index], quantity: Number(value) };
     } else if (field === 'unitPrice') {
-      updated[index] = { ...updated[index], unitPrice: Math.max(0, Number(value)) };
+      updated[index] = { ...updated[index], unitPrice: Number(value) };
     }
     setReceiptLines(updated);
   };
@@ -165,6 +167,7 @@ export const Inventory: React.FC = () => {
 
     const totalAmount = receiptItems.reduce((s, it) => s + it.totalPrice, 0);
 
+    try {
     const created = createReceipt({
       type: receiptTypeToCreate,
       reason: receiptReason.trim(),
@@ -178,6 +181,7 @@ export const Inventory: React.FC = () => {
     setIsCreateReceiptModalOpen(false);
     // Open receipt viewing modal to preview printable voucher immediately
     setViewingReceipt(created);
+    } catch (error) { alert(error instanceof Error ? error.message : 'Phiếu kho không hợp lệ'); }
   };
 
   // Handler: Submit Add New Material
@@ -429,9 +433,9 @@ export const Inventory: React.FC = () => {
                             <button
                               onClick={() => {
                                 const newQty = prompt(`Nhập số lượng tồn kho mới cho "${item.name}" (${item.unit}):`, String(item.quantity));
-                                if (newQty !== null && !isNaN(Number(newQty))) {
+                                if (newQty !== null && newQty.trim() !== '' && /^\d+(\.\d+)?$/.test(newQty) && Number.isFinite(Number(newQty))) {
                                   updateQuantity(item.id, Number(newQty));
-                                }
+                                } else if (newQty !== null) { alert('Số lượng phải là số hợp lệ và không được âm'); }
                               }}
                               className="px-2.5 py-1 rounded-lg bg-sky-100 hover:bg-sky-200 text-sky-800 text-[11px] font-bold cursor-pointer transition-colors"
                               title="Điều chỉnh số lượng trực tiếp"
@@ -619,7 +623,7 @@ export const Inventory: React.FC = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1">
                 <label className="text-xs font-bold text-stone-700">Lý do / Mục đích:</label>
-                <input
+                <ValidatedInput kind="text"
                   type="text"
                   required
                   value={receiptReason}
@@ -697,7 +701,7 @@ export const Inventory: React.FC = () => {
 
                       {/* Quantity & Unit */}
                       <div className="w-full sm:w-28 flex items-center gap-1">
-                        <input
+                        <NumericInput
                           type="number"
                           step="any"
                           min="0.1"
@@ -714,7 +718,7 @@ export const Inventory: React.FC = () => {
 
                       {/* Unit Price */}
                       <div className="w-full sm:w-32">
-                        <input
+                        <NumericInput
                           type="number"
                           step="any"
                           min="0"
@@ -955,7 +959,7 @@ export const Inventory: React.FC = () => {
 
             <div className="space-y-1">
               <label className="text-xs font-bold text-stone-700">Tên Nguyên Liệu:</label>
-              <input
+              <ValidatedInput kind="text"
                 type="text"
                 required
                 value={newMatName}
@@ -979,7 +983,7 @@ export const Inventory: React.FC = () => {
 
               <div className="space-y-1">
                 <label className="text-xs font-bold text-stone-700">Đơn vị tính:</label>
-                <input
+                <ValidatedInput kind="text"
                   type="text"
                   required
                   value={newMatUnit}
@@ -1010,7 +1014,7 @@ export const Inventory: React.FC = () => {
 
               <div className="space-y-1">
                 <label className="text-xs font-bold text-stone-700">Đơn giá vốn ước tính:</label>
-                <input
+                <NumericInput
                   type="number"
                   min="0"
                   value={newMatPrice}
@@ -1023,7 +1027,7 @@ export const Inventory: React.FC = () => {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
                 <label className="text-xs font-bold text-stone-700">Số lượng tồn ban đầu:</label>
-                <input
+                <NumericInput
                   type="number"
                   step="any"
                   min="0"
@@ -1035,7 +1039,7 @@ export const Inventory: React.FC = () => {
 
               <div className="space-y-1">
                 <label className="text-xs font-bold text-stone-700">Ngưỡng cảnh báo hết:</label>
-                <input
+                <NumericInput
                   type="number"
                   step="any"
                   min="0"

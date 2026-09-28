@@ -1,3 +1,5 @@
+import { ValidatedInput } from '../components/common/ValidatedInput';
+import { NumericInput } from '../components/common/NumericInput';
 import React, { useState } from 'react';
 import { useMenuStore } from '../stores/useMenuStore';
 import type { CategoryId } from '../types';
@@ -124,7 +126,7 @@ export const MenuPage: React.FC = () => {
 
             <div className="space-y-1">
               <label className="text-xs text-stone-600 font-semibold">Tên Món Uống / Bánh:</label>
-              <input
+              <ValidatedInput kind="text"
                 type="text"
                 required
                 value={name}
@@ -151,7 +153,7 @@ export const MenuPage: React.FC = () => {
 
             <div className="space-y-1">
               <label className="text-xs text-stone-600 font-semibold">Giá bán (đ):</label>
-              <input
+              <NumericInput
                 type="number"
                 required
                 min={0}

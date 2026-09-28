@@ -22,10 +22,13 @@ export const authenticateToken = (req: AuthRequest, res: Response, next: NextFun
   }
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as any;
-    req.user = decoded;
+    const decoded = jwt.verify(token, JWT_SECRET);
+    if (typeof decoded !== 'object' || typeof decoded.id !== 'string' || typeof decoded.role !== 'string') {
+      return res.status(403).json({ success: false, message: 'Token không hợp lệ.' });
+    }
+    req.user = decoded as NonNullable<AuthRequest['user']>;
     next();
-  } catch (error) {
+  } catch {
     return res.status(403).json({ success: false, message: 'Token không hợp lệ hoặc đã hết hạn (Forbidden).' });
   }
 };
@@ -36,7 +39,7 @@ export const requireRole = (...allowedRoles: string[]) => {
       return res.status(401).json({ success: false, message: 'Chưa xác thực thông tin người dùng.' });
     }
 
-    if (!allowedRoles.includes(req.user.role)) {
+    if (!allowedRoles.includes(req.user.role.toUpperCase())) {
       return res.status(403).json({
         success: false,
         message: `Bạn không có quyền thực hiện thao tác này (Cần quyền: ${allowedRoles.join(', ')}).`

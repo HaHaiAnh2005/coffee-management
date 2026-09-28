@@ -11,11 +11,16 @@ export class CouponService {
 
   async create(data: Partial<ICoupon>): Promise<ICoupon> {
     const coupon = new Coupon(data);
+    if (coupon.discountType === 'percent' && coupon.discountValue > 100) throw new Error('Phần trăm giảm giá không được vượt quá 100');
     return await coupon.save();
   }
 
   async update(id: string, data: Partial<ICoupon>): Promise<ICoupon | null> {
-    return await Coupon.findOneAndUpdate({ id }, data, { new: true });
+    const coupon = await Coupon.findOne({ id });
+    if (!coupon) return null;
+    coupon.set(data);
+    if (coupon.discountType === 'percent' && coupon.discountValue > 100) throw new Error('Phần trăm giảm giá không được vượt quá 100');
+    return await coupon.save();
   }
 
   async delete(id: string): Promise<ICoupon | null> {

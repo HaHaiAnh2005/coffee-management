@@ -41,4 +41,8 @@ export interface Order {
   cashierName: string;
   customerName?: string;
   customerPhone?: string;
+  paymentReference?: string;
+  paymentAccount?: string;
+  paymentBank?: string;
+  paymentAccountName?: string;
 }

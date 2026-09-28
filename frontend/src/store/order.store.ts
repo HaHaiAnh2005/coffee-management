@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import type { Order, OrderStatus } from '../types/order';
 import { generateCode } from '../utils/generateCode';
+import { orderQuantityError, nonnegativeNumber } from '../../../shared/validation';
 
 interface OrderStoreState {
   orders: Order[];
@@ -81,6 +82,9 @@ export const useOrderStore = create<OrderStoreState>()(
       setActiveOrderFilter: (filter) => set({ activeFilter: filter, activeOrderFilter: filter }),
 
       createOrder: (orderData) => {
+        const error = orderQuantityError(orderData.items);
+        if (error) throw new Error(error);
+        if (![orderData.subtotal, orderData.discount, orderData.total].every(nonnegativeNumber)) throw new Error('Số tiền đơn hàng phải hợp lệ và không âm');
         const newOrder: Order = {
           ...orderData,
           id: `ORD-${Date.now().toString().slice(-4)}`,
